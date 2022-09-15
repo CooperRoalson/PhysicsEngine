@@ -1,0 +1,6 @@
+#ifndef PHYSICSENGINE_PRECISION_H
+#define PHYSICSENGINE_PRECISION_H
+
+typedef float real;
+
+#endif //PHYSICSENGINE_PRECISION_H
