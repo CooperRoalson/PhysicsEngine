@@ -38,10 +38,17 @@ Vector4 Matrix4::multiply(Vector4 vec) {
     return {vec.dot(getRow(0)),vec.dot(getRow(1)),vec.dot(getRow(2)),vec.dot(getRow(3))};
 }
 
+void Matrix4::translate(real x,real y,real z) {
+    multiply(Matrix4(
+            1,0,0,x,
+            0,1,0,y,
+            0,0,1,z,
+            0,0,0,1
+    ));
+}
+
 void Matrix4::translate(Vector3 vec) {
-    data[3] += vec.x;
-    data[7] += vec.y;
-    data[11] += vec.z;
+    translate(vec.x,vec.y,vec.z);
 }
 
 void Matrix4::rotateX(real xrot) {
@@ -63,27 +70,34 @@ void Matrix4::rotateZ(real zrot) {
                      0,0,0,1));
 
 }
-void Matrix4::rotateXYZ(real yaw, real pitch, real roll) {
-    rotateZ(yaw);
-    rotateY(pitch);
-    rotateX(roll);
-}
-void Matrix4::rotateZYX(real yaw, real pitch, real roll) {
-    rotateX(roll);
-    rotateY(pitch);
-    rotateZ(yaw);
+void Matrix4::rotate(real yaw, real pitch, real roll) {
+    rotateY(yaw);
+    rotateX(pitch);
+    rotateZ(roll);
 }
 
 void Matrix4::scale(real scaleX, real scaleY, real scaleZ) {
-    data[0] *= scaleX;
-    data[5] *= scaleY;
-    data[10] *= scaleZ;
+    multiply(Matrix4(
+            scaleX,0,0,0,
+            0,scaleY,0,0,
+            0,0,scaleZ,0,
+            0,0,0,1
+    ));
 }
 void Matrix4::scale(real scalar) {scale(scalar,scalar,scalar);}
 
 GLfloat* Matrix4::toGLFloatArray() const {
     GLfloat* result = new GLfloat[16];
     for (int i = 0; i < 16; i++) {result[i] = (GLfloat) data[i];}
+    return result;
+}
+
+Matrix4 Matrix4::viewMatrix(Vector3 viewPos, real viewYaw, real viewPitch, real viewRoll) {
+    Matrix4 result;
+    result.rotateZ(-viewRoll);
+    result.rotateX(-viewPitch);
+    result.rotateY(-viewYaw);
+    result.translate(-viewPos);
     return result;
 }
 
@@ -95,4 +109,11 @@ Matrix4 Matrix4::perspectiveProjectionMatrix(real fov, real nearClipping, real f
             0, 0, -farClipping / (farClipping - nearClipping),-(farClipping * nearClipping) / (farClipping - nearClipping),
             0, 0, -1, 0
     };
+}
+
+Matrix4 Matrix4::orthographicProjectionMatrix(real left, real right, real bottom, real top, real near, real far) {
+    Matrix4 result;
+    result.scale(2/(right-left),2/(top-bottom),-2/(far-near));
+    result.translate(-(left+right)/2,-(bottom+top)/2,(near+far)/2);
+    return result;
 }

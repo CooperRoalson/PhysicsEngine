@@ -14,6 +14,10 @@ struct Vector3 {
     Vector3();
     Vector3(real x, real y, real z);
 
+    /*
+     * Elevation ranges from -PI/2 (facing -Y) to PI/2 (facing +Y)
+     * Azimuth ranges from 0 to 2*PI (both facing -Z) where PI/2 faces -X, PI faces +Z and 3/2*PI faces +X
+     */
     static Vector3 fromAngles(real azimuth, real elevation, real magnitude);
 
     Vector3 operator-() const;
@@ -41,6 +45,7 @@ struct Vector3 {
     static real dot(Vector3 vec1, Vector3 vec2);
     static Vector3 cross(Vector3 vec1, Vector3 vec2);
 
+    bool isZero() const;
 };
 
 std::ostream& operator<<(std::ostream &out, const Vector3 &v);

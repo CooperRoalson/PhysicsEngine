@@ -23,18 +23,20 @@ public:
     void multiply(Matrix4 mat);
     Vector4 multiply(Vector4 vec);
 
+    void translate(real x,real y,real z);
     void translate(Vector3 vec);
     void rotateX(real xrot);
     void rotateY(real yrot);
     void rotateZ(real zrot);
-    void rotateXYZ(real yaw, real pitch, real roll);
-    void rotateZYX(real yaw, real pitch, real roll);
+    void rotate(real yaw, real pitch, real roll);
     void scale(real scaleX, real scaleY, real scaleZ);
     void scale(real scalar);
 
     GLfloat* toGLFloatArray() const;
 
+    static Matrix4 viewMatrix(Vector3 viewPos, real viewYaw, real viewPitch, real viewRoll);
     static Matrix4 perspectiveProjectionMatrix(real fov, real nearClipping, real farClipping);
+    static Matrix4 orthographicProjectionMatrix(real left, real right, real bottom, real top, real near, real far);
 };
 
 

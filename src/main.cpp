@@ -17,12 +17,12 @@
 #define WINDOW_HEIGHT 1000
 #define FPS 60
 
-#define NEAR_CLIPPING -1
-#define FAR_CLIPPING 1
-#define FOV 60*M_PI/180
+#define NEAR_CLIPPING 1
+#define FAR_CLIPPING 30
+#define FOV 100*M_PI/180
 
 #define MOVEMENT_SPEED 0.01f
-#define MOUSE_SENSITIVITY 7
+#define MOUSE_SENSITIVITY 4
 
 #define VERTEX_BUFFER_LENGTH 1000
 #define INDEX_BUFFER_LENGTH 2000
@@ -37,6 +37,9 @@ struct {
 
 struct {
     Vector3 pos;
+    /*
+     * See Vector3::fromAngles for description of azimuth and elevation
+     */
     real azimuth, elevation;
     Vector3 lightDirection = Vector3::fromAngles(1,0.2-(real)M_PI_2,1);
 } view;
@@ -119,7 +122,15 @@ bool initSDL() {
         return false;
     }
 
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+
     return true;
+}
+
+void close() {
+    SDL_DestroyWindow(mainWindow.window);
+    SDL_GL_DeleteContext(mainWindow.glContext);
+    SDL_Quit();
 }
 
 bool initGL() {
@@ -175,62 +186,47 @@ void initGeometry() {
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
-    mainWindow.shapes.push_back(Shape::tiledFloor({0,0,-0.9},1,0.2,C_BLACK,C_PURPLE));
-    mainWindow.shapes.push_back(Shape::cube({0,0,0},0.6,C_RED));
+    mainWindow.shapes.push_back(Shape::tiledFloor({0,-1,0},10,1,C_BLACK,C_PURPLE));
+    //mainWindow.shapes.push_back(Shape::cube({0,0,0},0.6,C_RED));
 
-}
+    //mainWindow.shapes.push_back(Shape::cube({0.9,0.9,0.9},0.5,C_BLUE));
+    //mainWindow.shapes.push_back(Shape::cube({-0.9,0.9,0.9},0.5,C_GREEN));
+    //mainWindow.shapes.push_back(Shape::cube({-0.9,-0.9,0.9},0.5,C_RED));
+    //mainWindow.shapes.push_back(Shape::cube({0.9,-0.9,0.9},0.5,C_YELLOW));
+    //mainWindow.shapes.push_back(Shape::cube({0.9,0.9,-0.5},0.3,C_PURPLE));
 
-void close() {
-    SDL_DestroyWindow(mainWindow.window);
-    SDL_GL_DeleteContext(mainWindow.glContext);
-    SDL_Quit();
-}
+    mainWindow.shapes.push_back(Shape::cube({0,0,3},0.6,C_GREEN));
+    mainWindow.shapes.push_back(Shape::cube({0,0,-3},0.6,C_RED));
+    mainWindow.shapes.push_back(Shape::cube({0,0,0},0.6,C_BLUE));
+    mainWindow.shapes.push_back(Shape::cube(view.lightDirection*-4,3,C_YELLOW));
 
-void handleEvents(SDL_Event& e, bool& quit) {
-    while (SDL_PollEvent(&e)){
-        switch(e.type) {
-            case SDL_QUIT:
-                quit = true;
-                break;
-            case SDL_KEYDOWN:
-                if(e.key.keysym.sym == SDLK_ESCAPE) {
-                    quit = true;
-                }
-                break;
-            case SDL_MOUSEMOTION:
-                if (e.motion.state & SDL_BUTTON_LMASK) {
-                    float dx = e.motion.xrel;
-                    float dy = e.motion.yrel;
-                    view.elevation = fmin(fmax(view.elevation + dy/WINDOW_HEIGHT*MOUSE_SENSITIVITY,(real)-M_PI_2),(real)M_PI_2);
-                    view.azimuth = fmod((view.azimuth + dx/WINDOW_WIDTH*MOUSE_SENSITIVITY),(real) (2*M_PI));
-                }
-        }
-    }
 }
 
 void setUniforms() {
     // View matrix
     GLuint viewMatrixLoc = glGetUniformLocation(mainWindow.program,"viewMatrix");
-    Matrix4 viewMatrix;
-    viewMatrix.rotateZ((real) -M_PI_2);
-    viewMatrix.rotateZYX(-view.azimuth,-(view.elevation+(real)M_PI_2),0);
-    viewMatrix.translate(-view.pos);
+    Matrix4 viewMatrix = Matrix4::viewMatrix(view.pos,view.azimuth,view.elevation,0);
     GLfloat* viewMatrixArr = viewMatrix.toGLFloatArray();
     glUniformMatrix4fv(viewMatrixLoc,1,GL_TRUE,viewMatrixArr);
     delete[] viewMatrixArr;
 
+    //std::cout << "pos: " << view.pos << std::endl;
+    //std::cout << "View: " << Vector3::fromAngles(view.azimuth,view.elevation,1) << std::endl;
+
     // Projection matrix
     GLuint projMatrixLoc = glGetUniformLocation(mainWindow.program,"projectionMatrix");
-    Matrix4 projMatrix; //= Matrix4::perspectiveProjectionMatrix(FOV,NEAR_CLIPPING,FAR_CLIPPING);
-    //std::cout << projMatrix.multiply(Vector4{0.5,0.5,0.5,1}) << std::endl;
+    Matrix4 projMatrix = Matrix4::perspectiveProjectionMatrix(FOV,NEAR_CLIPPING,FAR_CLIPPING);
+    //Matrix4 projMatrix = Matrix4::orthographicProjectionMatrix(-5,5,-5,5,0,10);
+    //std::cout << projMatrix.multiply(Vector4{0,0,-3,1}) << std::endl;
     GLfloat* projMatrixArr = projMatrix.toGLFloatArray();
     glUniformMatrix4fv(projMatrixLoc,1,GL_TRUE,projMatrixArr);
     delete[] projMatrixArr;
 
+    //std::cout << "pos of (0,0,3): " << /*projMatrix.multiply(*/viewMatrix.multiply(Vector4(0,0,3,1)) << std::endl;
+
     // Light direction
     GLuint lightDirID = glGetUniformLocation(mainWindow.program,"lightDir");
     glUniform3f(lightDirID, view.lightDirection.x, view.lightDirection.y, view.lightDirection.z);
-
 
 }
 
@@ -291,13 +287,38 @@ void render(bool initialWrite) {
 
 void update(real timeDelta) {
     const Uint8* keystate = SDL_GetKeyboardState(NULL);
-    if (keystate[SDL_SCANCODE_W]) {view.pos += Vector3::fromAngles(view.azimuth,view.elevation,MOVEMENT_SPEED*timeDelta);}
-    if (keystate[SDL_SCANCODE_S]) {view.pos += -Vector3::fromAngles(view.azimuth,view.elevation,MOVEMENT_SPEED*timeDelta);}
-    if (keystate[SDL_SCANCODE_A]) {view.pos += Vector3::fromAngles(view.azimuth+(real)M_PI_2,0,MOVEMENT_SPEED*timeDelta);}
-    if (keystate[SDL_SCANCODE_D]) {view.pos += -Vector3::fromAngles(view.azimuth+(real)M_PI_2,0,MOVEMENT_SPEED*timeDelta);}
-    if (keystate[SDL_SCANCODE_SPACE]) {view.pos += Vector3{0,0,MOVEMENT_SPEED*timeDelta};}
-    if (keystate[SDL_SCANCODE_LSHIFT]) {view.pos += Vector3{0,0,-MOVEMENT_SPEED*timeDelta};}
+    Vector3 deltaPos;
+    if (keystate[SDL_SCANCODE_W]) {deltaPos += Vector3::fromAngles(view.azimuth,view.elevation,1);}
+    if (keystate[SDL_SCANCODE_S]) {deltaPos += -Vector3::fromAngles(view.azimuth,view.elevation,1);}
+    if (keystate[SDL_SCANCODE_A]) {deltaPos += Vector3::fromAngles(view.azimuth+(real)M_PI_2,0,1);}
+    if (keystate[SDL_SCANCODE_D]) {deltaPos += -Vector3::fromAngles(view.azimuth+(real)M_PI_2,0,1);}
+    view.pos += deltaPos.normalized()*MOVEMENT_SPEED*timeDelta;
+    if (keystate[SDL_SCANCODE_SPACE]) {view.pos += Vector3::UP*MOVEMENT_SPEED*timeDelta;}//Vector3{0,MOVEMENT_SPEED*timeDelta,0};}
+    if (keystate[SDL_SCANCODE_LSHIFT]) {view.pos += Vector3::DOWN*MOVEMENT_SPEED*timeDelta;}//Vector3{0,-MOVEMENT_SPEED*timeDelta,0};}
 
+}
+
+void handleEvents(SDL_Event& e, bool& quit) {
+    while (SDL_PollEvent(&e)){
+        switch(e.type) {
+            case SDL_QUIT:
+                quit = true;
+                break;
+            case SDL_KEYDOWN:
+                if(e.key.keysym.sym == SDLK_ESCAPE) {
+                    quit = true;
+                }
+                break;
+            case SDL_MOUSEMOTION:
+                //if (e.motion.state & SDL_BUTTON_LMASK) {
+                    float dx = e.motion.xrel;
+                    float dy = e.motion.yrel;
+                    view.elevation = fmin(fmax(view.elevation - dy/WINDOW_HEIGHT*MOUSE_SENSITIVITY,(real)-M_PI_2),(real)M_PI_2);
+                    view.azimuth = fmod((view.azimuth - dx/WINDOW_WIDTH*MOUSE_SENSITIVITY),(real) (2*M_PI));
+                //}
+        }
+    }
+    //SDL_WarpMouseInWindow(mainWindow.window,WINDOW_WIDTH/2,WINDOW_HEIGHT/2);
 }
 
 int main(){

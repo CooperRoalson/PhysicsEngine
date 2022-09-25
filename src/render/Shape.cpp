@@ -36,7 +36,7 @@ void Shape::generateVertexNormals() {
         i1 = indexArr[3*i];
         i2 = indexArr[3*i+1];
         i3 = indexArr[3*i+2];
-        prod = (vertexPositionArr[i3]-vertexPositionArr[i1]).cross(vertexPositionArr[i2]-vertexPositionArr[i1]);
+        prod = (vertexPositionArr[i2]-vertexPositionArr[i1]).cross(vertexPositionArr[i3]-vertexPositionArr[i1]);
         vertexNormalArr[i1] += prod;
         vertexNormalArr[i2] += prod;
         vertexNormalArr[i3] += prod;
@@ -79,18 +79,18 @@ Shape Shape::cube(Vector3 pos, GLfloat sideLength, VertexColor color) {
     };
     VertexColor colors[8] = {color,color,color,color,color,color,color,color};
     GLuint indices[] {
-            0,1,3,
-            0,3,2,
-            4,7,5,
-            4,6,7,
-            0,5,1,
-            0,4,5,
-            2,3,7,
-            2,7,6,
-            0,2,6,
-            0,6,4,
-            1,7,3,
-            1,5,7
+            0,3,1,
+            0,2,3,
+            4,5,7,
+            4,7,6,
+            0,1,5,
+            0,5,4,
+            2,7,3,
+            2,6,7,
+            0,6,2,
+            0,4,6,
+            1,3,7,
+            1,7,5
 
     };
     return Shape(8,positions,colors,36,indices);
@@ -105,17 +105,17 @@ Shape Shape::tiledFloor(Vector3 pos, real sideLength, real tileSideLength, Verte
     int i;
     Vector3 v;
     VertexColor c;
-    for (int iy = 0; iy < tileCount; iy++) {
+    for (int iz = 0; iz < tileCount; iz++) {
         for (int ix = 0; ix < tileCount; ix++) {
-            i = iy*tileCount+ix;
+            i = iz * tileCount + ix;
 
-            v = pos + Vector3(tileSideLength*(ix-tileCount/2.0f), tileSideLength*(iy-tileCount/2.0f),0);
+            v = pos + Vector3(tileSideLength*(ix-tileCount/2.0f), 0,tileSideLength*(iz - tileCount / 2.0f));
             positions[4*i] = v;
             positions[4*i+1] = v + Vector3(tileSideLength,0,0);
-            positions[4*i+2] = v + Vector3(0,tileSideLength,0);
-            positions[4*i+3] = v + Vector3(tileSideLength,tileSideLength,0);
+            positions[4*i+2] = v + Vector3(0,0,tileSideLength);
+            positions[4*i+3] = v + Vector3(tileSideLength,0,tileSideLength);
 
-            c = (ix+iy) % 2 == 0 ? color1 : color2;
+            c = (ix + iz) % 2 == 0 ? color1 : color2;
             colors[4*i] = c;
             colors[4*i+1] = c;
             colors[4*i+2] = c;
