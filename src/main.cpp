@@ -12,36 +12,41 @@
 #include "core/Vector3.h"
 #include "core/precision.h"
 #include "core/Matrix4.h"
+#include "physics/PhysicsObject.h"
 
-#define WINDOW_WIDTH 1000
-#define WINDOW_HEIGHT 1000
-#define FPS 60
+#define DEFAULT_WINDOW_WIDTH 1000
+#define DEFAULT_WINDOW_HEIGHT 1000
+#define UPDATES_PER_SECOND 60
 
-#define NEAR_CLIPPING 1
-#define FAR_CLIPPING 30
+#define NEAR_CLIPPING 0.5
+#define FAR_CLIPPING 100
 #define FOV 100*M_PI/180
 
-#define MOVEMENT_SPEED 0.01f
-#define MOUSE_SENSITIVITY 4
+#define MOVEMENT_SPEED 3.5f
+#define MOUSE_SENSITIVITY 0.004f
 
-#define VERTEX_BUFFER_LENGTH 1000
-#define INDEX_BUFFER_LENGTH 2000
+#define VERTEX_BUFFER_LENGTH 2000
+#define INDEX_BUFFER_LENGTH 10000
 
 struct {
     SDL_Window* window;
+    int windowWidth, windowHeight;
     SDL_GLContext glContext;
-    GLuint program;
+    GLuint smoothShadingProgram,flatShadingProgram;
     GLuint vao, vbo[2], ebo;
-    std::vector<Shape> shapes;
+
+    std::vector<PhysicsObject> objects;
 } mainWindow;
 
 struct {
-    Vector3 pos;
+    bool dragMode = false;
+
+    Vector3 pos {0,1,0};
     /*
      * See Vector3::fromAngles for description of azimuth and elevation
      */
     real azimuth, elevation;
-    Vector3 lightDirection = Vector3::fromAngles(1,0.2-(real)M_PI_2,1);
+    Vector3 lightDirection = Vector3::fromAngles(1,0.5-(real)M_PI_2,1);
 } view;
 
 GLuint createProgram(const GLchar* vertexSource, const GLchar* fragmentSource) {
@@ -85,8 +90,6 @@ GLuint createProgram(const GLchar* vertexSource, const GLchar* fragmentSource) {
     glAttachShader(program,vShader);
     glAttachShader(program,fShader);
 
-    glBindAttribLocation( program, 0, "LVertexPos2D" );
-
     glLinkProgram(program);
 
     glGetProgramiv(program, GL_LINK_STATUS, &status);
@@ -115,14 +118,16 @@ bool initSDL() {
     }
 
     int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
-    mainWindow.window = SDL_CreateWindow("Physics Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, flags);
+    mainWindow.window = SDL_CreateWindow("Physics Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, flags);
 
     if (!mainWindow.window){
         std::cout << "Failed to create window! SDL Error: " << SDL_GetError() << std::endl;
         return false;
     }
 
-    SDL_SetRelativeMouseMode(SDL_TRUE);
+    SDL_GetWindowSize(mainWindow.window, &mainWindow.windowWidth, &mainWindow.windowHeight);
+
+    SDL_SetRelativeMouseMode((SDL_bool) !view.dragMode);
 
     return true;
 }
@@ -146,14 +151,21 @@ bool initGL() {
         return false;
     }
 
+    glViewport(0, 0, mainWindow.windowWidth, mainWindow.windowHeight);
+
     if (SDL_GL_SetSwapInterval(1) < 0) {
         std::cout << "Failed to set VSync! SDL Error: " << SDL_GetError() << std::endl;
         return false;
     }
 
-    if ((mainWindow.program = createProgram(BASIC_VERT_SHADER_SRC,BASIC_FRAG_SHADER_SRC)) == -1) {
+    if ((mainWindow.smoothShadingProgram = createProgram(SMOOTH_VERT_SHADER_SRC,SMOOTH_FRAG_SHADER_SRC)) == -1) {
         return false;
     }
+    if ((mainWindow.flatShadingProgram = createProgram(FLAT_VERT_SHADER_SRC,FLAT_FRAG_SHADER_SRC)) == -1) {
+        return false;
+    }
+
+    glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 
     glGenVertexArrays(1,&mainWindow.vao);
     glBindVertexArray(mainWindow.vao);
@@ -170,7 +182,7 @@ bool initGL() {
 
     glBindBuffer(GL_ARRAY_BUFFER, mainWindow.vbo[1]);
     // Colors
-    glVertexAttribPointer(1,4,GL_FLOAT,GL_FALSE,0,(GLvoid*)0);
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,(GLvoid*)0);
     glEnableVertexAttribArray(1);
 
     glGenBuffers(1, &mainWindow.ebo);
@@ -186,25 +198,14 @@ void initGeometry() {
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
-    mainWindow.shapes.push_back(Shape::tiledFloor({0,-1,0},10,1,C_BLACK,C_PURPLE));
-    //mainWindow.shapes.push_back(Shape::cube({0,0,0},0.6,C_RED));
+    mainWindow.objects.emplace_back(Vector3(),Vector3(),0,Shape::tiledFloor(Vector3(),10,1,C_BLACK,C_PURPLE));
 
-    //mainWindow.shapes.push_back(Shape::cube({0.9,0.9,0.9},0.5,C_BLUE));
-    //mainWindow.shapes.push_back(Shape::cube({-0.9,0.9,0.9},0.5,C_GREEN));
-    //mainWindow.shapes.push_back(Shape::cube({-0.9,-0.9,0.9},0.5,C_RED));
-    //mainWindow.shapes.push_back(Shape::cube({0.9,-0.9,0.9},0.5,C_YELLOW));
-    //mainWindow.shapes.push_back(Shape::cube({0.9,0.9,-0.5},0.3,C_PURPLE));
-
-    mainWindow.shapes.push_back(Shape::cube({0,0,3},0.6,C_GREEN));
-    mainWindow.shapes.push_back(Shape::cube({0,0,-3},0.6,C_RED));
-    mainWindow.shapes.push_back(Shape::cube({0,0,0},0.6,C_BLUE));
-    mainWindow.shapes.push_back(Shape::cube(view.lightDirection*-4,3,C_YELLOW));
-
+    mainWindow.objects.push_back(Particle(Vector3(0,2,-2),Vector3(0,3,0),1,C_RED));
 }
 
-void setUniforms() {
+void setUniforms(GLuint program) {
     // View matrix
-    GLuint viewMatrixLoc = glGetUniformLocation(mainWindow.program,"viewMatrix");
+    GLuint viewMatrixLoc = glGetUniformLocation(program,"viewMatrix");
     Matrix4 viewMatrix = Matrix4::viewMatrix(view.pos,view.azimuth,view.elevation,0);
     GLfloat* viewMatrixArr = viewMatrix.toGLFloatArray();
     glUniformMatrix4fv(viewMatrixLoc,1,GL_TRUE,viewMatrixArr);
@@ -214,10 +215,8 @@ void setUniforms() {
     //std::cout << "View: " << Vector3::fromAngles(view.azimuth,view.elevation,1) << std::endl;
 
     // Projection matrix
-    GLuint projMatrixLoc = glGetUniformLocation(mainWindow.program,"projectionMatrix");
-    Matrix4 projMatrix = Matrix4::perspectiveProjectionMatrix(FOV,NEAR_CLIPPING,FAR_CLIPPING);
-    //Matrix4 projMatrix = Matrix4::orthographicProjectionMatrix(-5,5,-5,5,0,10);
-    //std::cout << projMatrix.multiply(Vector4{0,0,-3,1}) << std::endl;
+    GLuint projMatrixLoc = glGetUniformLocation(program,"projectionMatrix");
+    Matrix4 projMatrix = Matrix4::perspectiveProjectionMatrix(FOV,NEAR_CLIPPING,FAR_CLIPPING,(real)mainWindow.windowWidth/mainWindow.windowHeight);
     GLfloat* projMatrixArr = projMatrix.toGLFloatArray();
     glUniformMatrix4fv(projMatrixLoc,1,GL_TRUE,projMatrixArr);
     delete[] projMatrixArr;
@@ -225,7 +224,7 @@ void setUniforms() {
     //std::cout << "pos of (0,0,3): " << /*projMatrix.multiply(*/viewMatrix.multiply(Vector4(0,0,3,1)) << std::endl;
 
     // Light direction
-    GLuint lightDirID = glGetUniformLocation(mainWindow.program,"lightDir");
+    GLuint lightDirID = glGetUniformLocation(program,"lightDir");
     glUniform3f(lightDirID, view.lightDirection.x, view.lightDirection.y, view.lightDirection.z);
 
 }
@@ -233,10 +232,11 @@ void setUniforms() {
 void render(bool initialWrite) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
     unsigned int numVertices = 0, numIndices = 0;
-    for (Shape &s : mainWindow.shapes) {
-        numVertices += s.numVertices();
-        numIndices += s.numIndices();
+    for (PhysicsObject &obj : mainWindow.objects) {
+        numVertices += obj.getModel().numVertices();
+        numIndices += obj.getModel().numIndices();
     }
 
     Vector3* positions = new Vector3[numVertices*2];
@@ -247,24 +247,33 @@ void render(bool initialWrite) {
         indices = new GLuint[numIndices];
     }
     int vertexIdx = 0, indexIdx = 0;
-    for (Shape &s : mainWindow.shapes) {
-        s.writeVertexPositionsAndNormals(positions + vertexIdx*2);
+    for (PhysicsObject &obj : mainWindow.objects) {
+        if (obj.getModel().isFlatShaded()) {continue;}
+        obj.getModel().writeVertexPositionsAndNormals(positions + vertexIdx*2,obj.getModelMatrix());
         if (initialWrite) {
-            s.writeVertexColors(colors + vertexIdx);
-            s.writeIndices(indices + indexIdx, vertexIdx);
+            obj.getModel().writeVertexColors(colors + vertexIdx);
+            obj.getModel().writeIndices(indices + indexIdx, vertexIdx);
         }
-        vertexIdx += s.numVertices();
-        indexIdx += s.numIndices();
+        vertexIdx += obj.getModel().numVertices();
+        indexIdx += obj.getModel().numIndices();
+    }
+    unsigned int flatShadingStart = indexIdx;
+    for (PhysicsObject &obj : mainWindow.objects) {
+        if (!obj.getModel().isFlatShaded()) {continue;}
+        obj.getModel().writeVertexPositionsAndNormals(positions + vertexIdx*2,obj.getModelMatrix());
+        if (initialWrite) {
+            obj.getModel().writeVertexColors(colors + vertexIdx);
+            obj.getModel().writeIndices(indices + indexIdx, vertexIdx);
+        }
+        vertexIdx += obj.getModel().numVertices();
+        indexIdx += obj.getModel().numIndices();
     }
 
-    glUseProgram(mainWindow.program);
     glBindVertexArray(mainWindow.vao);
-
-    setUniforms();
 
     if (!initialWrite) {
         glBindBuffer(GL_ARRAY_BUFFER, mainWindow.vbo[0]);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(positions), positions);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, 2*sizeof(Vector3)*numVertices, positions);
     } else {
         glBindBuffer(GL_ARRAY_BUFFER, mainWindow.vbo[0]);
         glBufferData(GL_ARRAY_BUFFER, VERTEX_BUFFER_LENGTH * 2*sizeof(Vector3), positions, GL_DYNAMIC_DRAW);
@@ -276,10 +285,17 @@ void render(bool initialWrite) {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_BUFFER_LENGTH * sizeof(GLuint), indices, GL_STATIC_DRAW);
     }
 
-    glDrawElements(GL_TRIANGLES,numIndices,GL_UNSIGNED_INT,(GLvoid*)0);
+    glUseProgram(mainWindow.smoothShadingProgram);
+    setUniforms(mainWindow.smoothShadingProgram);
+    glDrawElements(GL_TRIANGLES,flatShadingStart,GL_UNSIGNED_INT,(GLvoid*)0);
 
-    glBindVertexArray(0);
+    glUseProgram(mainWindow.flatShadingProgram);
+    setUniforms(mainWindow.flatShadingProgram);
+    glDrawElements(GL_TRIANGLES,numIndices-flatShadingStart,GL_UNSIGNED_INT,(GLvoid*)(flatShadingStart*sizeof(GLuint)));
+
     glUseProgram(0);
+    glBindVertexArray(0);
+
 
     SDL_GL_SwapWindow(mainWindow.window);
 
@@ -296,9 +312,18 @@ void update(real timeDelta) {
     if (keystate[SDL_SCANCODE_SPACE]) {view.pos += Vector3::UP*MOVEMENT_SPEED*timeDelta;}//Vector3{0,MOVEMENT_SPEED*timeDelta,0};}
     if (keystate[SDL_SCANCODE_LSHIFT]) {view.pos += Vector3::DOWN*MOVEMENT_SPEED*timeDelta;}//Vector3{0,-MOVEMENT_SPEED*timeDelta,0};}
 
+
+    for (PhysicsObject& obj : mainWindow.objects) {
+        if (obj.hasFiniteMass()) {obj.addAcceleration(PhysicsObject::GRAVITY);}
+
+        obj.update(timeDelta);
+
+    }
+
 }
 
 void handleEvents(SDL_Event& e, bool& quit) {
+    static bool mouseDragged = false;
     while (SDL_PollEvent(&e)){
         switch(e.type) {
             case SDL_QUIT:
@@ -309,16 +334,36 @@ void handleEvents(SDL_Event& e, bool& quit) {
                     quit = true;
                 }
                 break;
+            case SDL_MOUSEBUTTONDOWN:
+                if (e.button.button & SDL_BUTTON_LMASK) {
+                    mouseDragged = false;
+                }
+                break;
+            case SDL_MOUSEBUTTONUP:
+                if (!mouseDragged) {
+                    view.dragMode = !view.dragMode;
+                    SDL_SetRelativeMouseMode((SDL_bool) !view.dragMode);
+                    SDL_WarpMouseInWindow(mainWindow.window,mainWindow.windowWidth/2,mainWindow.windowHeight/2);
+                }
+                break;
             case SDL_MOUSEMOTION:
-                //if (e.motion.state & SDL_BUTTON_LMASK) {
-                    float dx = e.motion.xrel;
-                    float dy = e.motion.yrel;
-                    view.elevation = fmin(fmax(view.elevation - dy/WINDOW_HEIGHT*MOUSE_SENSITIVITY,(real)-M_PI_2),(real)M_PI_2);
-                    view.azimuth = fmod((view.azimuth - dx/WINDOW_WIDTH*MOUSE_SENSITIVITY),(real) (2*M_PI));
-                //}
+                mouseDragged = true;
+                if (!view.dragMode || (e.motion.state & SDL_BUTTON_LMASK)) {
+                    view.elevation = std::clamp(view.elevation - (real) e.motion.yrel * MOUSE_SENSITIVITY * (view.dragMode ? -1 : 1), (real) -M_PI_2,(real) M_PI_2);
+                    view.azimuth = real_mod((view.azimuth - (real) e.motion.xrel * MOUSE_SENSITIVITY * (view.dragMode ? -1 : 1)), (real) (2 * M_PI));
+                }
+                break;
+            case SDL_WINDOWEVENT:
+                SDL_WindowEvent we = e.window;
+                if (we.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                    mainWindow.windowWidth = we.data1;
+                    mainWindow.windowHeight = we.data2;
+                    glViewport(0, 0, mainWindow.windowWidth, mainWindow.windowHeight);
+                }
+                break;
         }
     }
-    //SDL_WarpMouseInWindow(mainWindow.window,WINDOW_WIDTH/2,WINDOW_HEIGHT/2);
+
 }
 
 int main(){
@@ -340,22 +385,21 @@ int main(){
     render(true);
 
     // Loop timing, in milliseconds
-    real timeStep = 1000.0f/FPS;
-    real currentTime = SDL_GetTicks();
-    real lastTime,timeDelta,accumulatedTime=0;
+    Uint32 timeStep = 1000.0f/UPDATES_PER_SECOND;
+    Uint32 currentTime = SDL_GetTicks();
+    Uint32 lastTime,accumulatedTime=0;
 
     SDL_Event e;
     bool quit = false;
     while (!quit) {
         lastTime = currentTime;
         currentTime = SDL_GetTicks();
-        timeDelta = currentTime - timeStep;
-        accumulatedTime += timeDelta;
+        accumulatedTime += currentTime - lastTime;
 
         while (accumulatedTime >= timeStep)
         {
             handleEvents(e, quit);
-            update(timeStep/1000);
+            update(timeStep/1000.0f);
             accumulatedTime -= timeStep;
         }
 

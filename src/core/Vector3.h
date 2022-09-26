@@ -1,10 +1,10 @@
 #ifndef PHYSICSENGINE_VECTOR3_H
 #define PHYSICSENGINE_VECTOR3_H
 
-#include <cmath>
 #include <iostream>
 
 #include "precision.h"
+#include "Vector4.h"
 
 struct Vector3 {
     real x,y,z;
@@ -13,6 +13,7 @@ struct Vector3 {
 
     Vector3();
     Vector3(real x, real y, real z);
+    Vector3(Vector4 vec4);
 
     /*
      * Elevation ranges from -PI/2 (facing -Y) to PI/2 (facing +Y)
@@ -22,17 +23,17 @@ struct Vector3 {
 
     Vector3 operator-() const;
 
-    Vector3 operator+(Vector3 vec) const;
-    void operator+=(Vector3 vec);
+    Vector3 operator+(const Vector3& vec) const;
+    Vector3& operator+=(const Vector3& vec);
 
-    Vector3 operator-(Vector3 vec) const;
-    void operator-=(Vector3 vec);
+    Vector3 operator-(const Vector3& vec) const;
+    Vector3& operator-=(const Vector3& vec);
 
-    Vector3 operator*(real scalar) const;
-    void operator*=(real scalar);
+    Vector3 operator*(const real& scalar) const;
+    Vector3& operator*=(const real& scalar);
 
-    Vector3 operator/(real scalar) const;
-    void operator/=(real scalar);
+    Vector3 operator/(const real& scalar) const;
+    Vector3& operator/=(const real& scalar);
 
     real magnitudeSquared() const;
     real magnitude() const;

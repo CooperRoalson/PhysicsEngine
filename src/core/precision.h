@@ -2,6 +2,7 @@
 #define PHYSICSENGINE_PRECISION_H
 
 typedef float real;
-#define REAL_ROUNDING_THRESHOLD 0.000000001
+#define real_mod fmod
+#define real_pow powf
 
 #endif //PHYSICSENGINE_PRECISION_H

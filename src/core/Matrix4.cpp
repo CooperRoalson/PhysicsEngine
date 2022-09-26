@@ -1,5 +1,6 @@
 #include "Matrix4.h"
 #include <string>
+#include <cmath>
 
 const Matrix4 IDENTITY(),ZERO(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
 
@@ -25,7 +26,7 @@ Vector4 Matrix4::getColumn(int i) {
     return {data[i],data[i+4],data[i+8],data[i+12]};
 }
 
-void Matrix4::multiply(Matrix4 mat) {
+Matrix4& Matrix4::multiply(Matrix4 mat) {
     Vector4 row;
     for (int r = 0; r < 4; r++) {
         row = getRow(r);
@@ -33,58 +34,62 @@ void Matrix4::multiply(Matrix4 mat) {
             data[r*4+c] = row.dot(mat.getColumn(c));
         }
     }
+    return *this;
 }
 Vector4 Matrix4::multiply(Vector4 vec) {
     return {vec.dot(getRow(0)),vec.dot(getRow(1)),vec.dot(getRow(2)),vec.dot(getRow(3))};
 }
 
-void Matrix4::translate(real x,real y,real z) {
+Vector4 Matrix4::multiply(Vector3 vec3, real w) {
+    return multiply(Vector4(vec3.x,vec3.y,vec3.z,w));
+}
+
+Matrix4& Matrix4::translate(real x,real y,real z) {
     multiply(Matrix4(
             1,0,0,x,
             0,1,0,y,
             0,0,1,z,
             0,0,0,1
     ));
+    return *this;
 }
 
-void Matrix4::translate(Vector3 vec) {
-    translate(vec.x,vec.y,vec.z);
+Matrix4& Matrix4::translate(Vector3 vec) {
+    return translate(vec.x,vec.y,vec.z);
 }
 
-void Matrix4::rotateX(real xrot) {
-    multiply(Matrix4(1,0,0,0,
+Matrix4& Matrix4::rotateX(real xrot) {
+    return multiply(Matrix4(1,0,0,0,
                      0,cos(xrot),-sin(xrot),0,
                      0,sin(xrot),cos(xrot),0,
                      0,0,0,1));
 }
-void Matrix4::rotateY(real yrot) {
-    multiply(Matrix4(cos(yrot),0,sin(yrot),0,
+Matrix4& Matrix4::rotateY(real yrot) {
+    return multiply(Matrix4(cos(yrot),0,sin(yrot),0,
                       0,1,0,0,
                       -sin(yrot),0,cos(yrot),0,
                       0,0,0,1));
 }
-void Matrix4::rotateZ(real zrot) {
-    multiply(Matrix4(cos(zrot),-sin(zrot),0,0,
+Matrix4& Matrix4::rotateZ(real zrot) {
+    return multiply(Matrix4(cos(zrot),-sin(zrot),0,0,
                      sin(zrot),cos(zrot),0,0,
                      0,0,1,0,
                      0,0,0,1));
 
 }
-void Matrix4::rotate(real yaw, real pitch, real roll) {
-    rotateY(yaw);
-    rotateX(pitch);
-    rotateZ(roll);
+Matrix4& Matrix4::rotate(real yaw, real pitch, real roll) {
+    return rotateY(yaw).rotateX(pitch).rotateZ(roll);
 }
 
-void Matrix4::scale(real scaleX, real scaleY, real scaleZ) {
-    multiply(Matrix4(
+Matrix4& Matrix4::scale(real scaleX, real scaleY, real scaleZ) {
+    return multiply(Matrix4(
             scaleX,0,0,0,
             0,scaleY,0,0,
             0,0,scaleZ,0,
             0,0,0,1
     ));
 }
-void Matrix4::scale(real scalar) {scale(scalar,scalar,scalar);}
+Matrix4& Matrix4::scale(real scalar) {return scale(scalar,scalar,scalar);}
 
 GLfloat* Matrix4::toGLFloatArray() const {
     GLfloat* result = new GLfloat[16];
@@ -93,18 +98,13 @@ GLfloat* Matrix4::toGLFloatArray() const {
 }
 
 Matrix4 Matrix4::viewMatrix(Vector3 viewPos, real viewYaw, real viewPitch, real viewRoll) {
-    Matrix4 result;
-    result.rotateZ(-viewRoll);
-    result.rotateX(-viewPitch);
-    result.rotateY(-viewYaw);
-    result.translate(-viewPos);
-    return result;
+    return Matrix4().rotateZ(-viewRoll).rotateX(-viewPitch).rotateY(-viewYaw).translate(-viewPos);
 }
 
-Matrix4 Matrix4::perspectiveProjectionMatrix(real fov, real nearClipping, real farClipping) {
+Matrix4 Matrix4::perspectiveProjectionMatrix(real fov, real nearClipping, real farClipping, real aspectRatio) {
     real S = 1 / (tan(fov / 2));
     return {
-            S, 0, 0, 0,
+            S/aspectRatio, 0, 0, 0,
             0, S, 0, 0,
             0, 0, -farClipping / (farClipping - nearClipping),-(farClipping * nearClipping) / (farClipping - nearClipping),
             0, 0, -1, 0
@@ -112,8 +112,9 @@ Matrix4 Matrix4::perspectiveProjectionMatrix(real fov, real nearClipping, real f
 }
 
 Matrix4 Matrix4::orthographicProjectionMatrix(real left, real right, real bottom, real top, real near, real far) {
-    Matrix4 result;
-    result.scale(2/(right-left),2/(top-bottom),-2/(far-near));
-    result.translate(-(left+right)/2,-(bottom+top)/2,(near+far)/2);
-    return result;
+    return Matrix4().scale(
+            2/(right-left),2/(top-bottom),-2/(far-near)
+    ).translate(
+            -(left+right)/2,-(bottom+top)/2,(near+far)/2
+    );
 }
