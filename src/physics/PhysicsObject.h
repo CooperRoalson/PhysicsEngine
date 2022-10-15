@@ -10,14 +10,21 @@ class PhysicsObject {
 private:
     Vector3 position;
     Vector3 velocity;
-    Vector3 acceleration;
+
+    /*
+     * Stores accumulated force to apply at next iteration.
+     * Cleared afterward
+     */
+    Vector3 forceAccumulator;
 
     real inverseMass;
 
     Shape model;
 
+    // Clears the force accumulator. Called after each integration step
+    void clearForceAccumulator();
+
 public:
-    static const Vector3 GRAVITY;
     static const real DAMPING;
 
     PhysicsObject(Vector3 pos, Vector3 vel, real inverseMass, Shape model);
@@ -27,16 +34,17 @@ public:
     real getMass() const;
     Vector3 getPosition() const;
     Vector3 getVelocity() const;
-    Vector3 getAcceleration() const;
 
     const Shape& getModel() const;
     Matrix4 getModelMatrix() const;
 
-    void update(real timeDelta);
+    /*
+     * Updates the object's position and velocity based on a time duration of `timeDelta`
+     */
+    virtual void update(real deltaTime);
 
-    void addAcceleration(Vector3 acc);
     void addForce(Vector3 force);
-    void clearForceAccumulator();
+
 };
 
 class Particle : public PhysicsObject {

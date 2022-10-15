@@ -2,8 +2,7 @@
 
 #include <cmath>
 
-const Vector3 PhysicsObject::GRAVITY(0, -9.81, 0);
-const real PhysicsObject::DAMPING(0.9f);
+const real PhysicsObject::DAMPING(0.95f);
 
 bool hasFiniteMass();
 
@@ -15,7 +14,6 @@ real PhysicsObject::getMass() const {return hasFiniteMass() ? 1/inverseMass : 0;
 
 Vector3 PhysicsObject::getPosition() const {return position;}
 Vector3 PhysicsObject::getVelocity() const {return velocity;}
-Vector3 PhysicsObject::getAcceleration() const {return acceleration;}
 
 const Shape& PhysicsObject::getModel() const {return model;}
 
@@ -23,24 +21,27 @@ Matrix4 PhysicsObject::getModelMatrix() const {
     return Matrix4().translate(position);
 }
 
-void PhysicsObject::update(real timeDelta) {
+void PhysicsObject::update(real deltaTime) {
     if (!hasFiniteMass()) {return;}
 
-    position += velocity*timeDelta;
+    position += velocity*deltaTime;
 
-    velocity += acceleration*timeDelta;
-    velocity *= real_pow(DAMPING, timeDelta);
+    // a = F/m
+    Vector3 acceleration = forceAccumulator * inverseMass;
+
+    velocity += acceleration*deltaTime;
+    velocity *= real_pow(DAMPING, deltaTime);
 
     if (position.y <= 0.0f) {velocity.y *= -1.0f;}
 
     clearForceAccumulator();
 }
 
-void PhysicsObject::addForce(Vector3 force) { if (hasFiniteMass()) {acceleration += force*inverseMass;} }
-void PhysicsObject::addAcceleration(Vector3 acc) { if (hasFiniteMass()) {acceleration += acc;} }
+void PhysicsObject::addForce(Vector3 force) { if (hasFiniteMass()) {forceAccumulator += force*inverseMass;} }
 
-void PhysicsObject::clearForceAccumulator() { acceleration = Vector3(); }
-
+void PhysicsObject::clearForceAccumulator() {
+    forceAccumulator = Vector3();
+}
 
 const real Particle::RADIUS = 0.2;
 const int Particle::SMOOTHNESS = 2;
