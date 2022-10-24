@@ -63,6 +63,8 @@ private:
     bool shouldPush;
 
 public:
+    static float SPRING_DAMPING;
+
     /* Creates a SpringForce towards a PhysicsObject */
     SpringForce(PhysicsObject* objectAnchor, real k, real restLength, bool shouldPush);
     /* Creates a SpringForce towards a fixed Vector3 */

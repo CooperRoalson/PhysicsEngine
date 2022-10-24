@@ -44,6 +44,8 @@ public:
     virtual void update(real deltaTime);
 
     void addForce(Vector3 force);
+    void setVelocity(Vector3 vel);
+    void setPosition(Vector3 vel);
 
 };
 

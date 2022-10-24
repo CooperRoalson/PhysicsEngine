@@ -26,14 +26,19 @@ void DragForce::updateForce(PhysicsObject* object, real deltaTime) {
 SpringForce::SpringForce(PhysicsObject* objectAnchor, real k, real restLength, bool shouldPush) : anchorPositionGetter([objectAnchor](){return objectAnchor->getPosition();}), k(k), restLength(restLength), shouldPush(shouldPush) {}
 SpringForce::SpringForce(Vector3 staticAnchor, real k, real restLength, bool shouldPush) : anchorPositionGetter([staticAnchor](){return staticAnchor;}), k(k), restLength(restLength), shouldPush(shouldPush) {}
 
+real SpringForce::SPRING_DAMPING = 0.75f;
+
 void SpringForce::updateForce(PhysicsObject *object, real deltaTime) {
 
     // Get displacement
     Vector3 force = object->getPosition() - anchorPositionGetter();
 
     // Get force magnitude
-    real magnitude = real_abs(force.magnitude() - restLength) * k;
-    if (force.magnitude() < restLength && !shouldPush) {return;} // Don't exert pushes if shouldPush is false
+    real magnitude = (force.magnitude() - restLength) * k;
+    if (magnitude < 0 && !shouldPush) {return;} // Don't exert pushes if shouldPush is false
+
+    magnitude *= real_pow(SPRING_DAMPING, deltaTime); // Dampen the spring so it doesn't build up momentum
+
     force = force.normalized() * -magnitude;
 
     object->addForce(force);

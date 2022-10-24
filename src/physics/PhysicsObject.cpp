@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-const real PhysicsObject::DAMPING(0.95f);
+const real PhysicsObject::DAMPING(0.9f);
 
 bool hasFiniteMass();
 
@@ -41,6 +41,14 @@ void PhysicsObject::addForce(Vector3 force) { if (hasFiniteMass()) {forceAccumul
 
 void PhysicsObject::clearForceAccumulator() {
     forceAccumulator = Vector3();
+}
+
+void PhysicsObject::setVelocity(Vector3 vel) {
+    velocity = vel;
+}
+
+void PhysicsObject::setPosition(Vector3 pos) {
+    position = pos;
 }
 
 const real Particle::RADIUS = 0.2;

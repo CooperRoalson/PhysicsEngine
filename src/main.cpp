@@ -218,17 +218,16 @@ void initGeometry() {
     world.forceRegistry.add(p2,gravity);
 
     SpringForce *spring1to2, *spring2to1;
-    world.forces.push_back(spring1to2 = new SpringForce(p2,1.0f,3.0f,true));
-    world.forces.push_back(spring2to1 = new SpringForce(p1,1.0f,3.0f,true));
+    world.forces.push_back(spring1to2 = new SpringForce(p2,5.0f,1.0f,true));
+    world.forces.push_back(spring2to1 = new SpringForce(p1,5.0f,1.0f,true));
     world.forceRegistry.add(p1,spring1to2);
     world.forceRegistry.add(p2,spring2to1);
 
     Particle *p3;
-    world.objects.push_back(p3 = new Particle(Vector3(3,2,0),Vector3(1,0,0),1,C_GREEN));
+    world.objects.push_back(p3 = new Particle(Vector3(3,2,0),Vector3(0,0,0),1,C_GREEN));
     world.objects.push_back(new Particle(Vector3(0,2,0),Vector3(0,0,0),0,C_WHITE));
-    world.objects.push_back(new Particle(Vector3(3,2,0),Vector3(0,0,0),0,C_PURPLE));
-    SpringForce *spring3toPt;
-    world.forces.push_back(spring3toPt = new SpringForce(Vector3(0,2,0),5.0f,3.0f,true));
+     SpringForce *spring3toPt;
+    world.forces.push_back(spring3toPt = new SpringForce(Vector3(0,2,0),8.0f,2.0f,true));
     world.forceRegistry.add(p3,spring3toPt);
 
 }
