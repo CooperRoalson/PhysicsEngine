@@ -14,6 +14,9 @@
 #include "core/Matrix4.h"
 #include "physics/PhysicsObject.h"
 #include "physics/ForceRegistry.h"
+#include "physics/PhysicsContactResolver.h"
+#include "physics/PhysicsWorld.h"
+#include "physics/ObjectLink.h"
 
 #define DEFAULT_WINDOW_WIDTH 1000
 #define DEFAULT_WINDOW_HEIGHT 1000
@@ -29,6 +32,8 @@
 #define VERTEX_BUFFER_LENGTH 2000
 #define INDEX_BUFFER_LENGTH 10000
 
+#define MAX_CONTACTS 2000
+
 struct {
     SDL_Window* window;
     int windowWidth, windowHeight;
@@ -36,12 +41,6 @@ struct {
     GLuint smoothShadingProgram,flatShadingProgram;
     GLuint vao, vbo[2], ebo;
 } mainWindow;
-
-struct {
-    std::vector<PhysicsObject*> objects;
-    std::vector<ForceGenerator*> forces;
-    ForceRegistry forceRegistry;
-} world;
 
 struct {
     bool dragMode = false;
@@ -53,6 +52,10 @@ struct {
     real azimuth, elevation;
     Vector3 lightDirection = Vector3::fromAngles(1,0.5-(real)M_PI_2,1);
 } view;
+
+PhysicsWorld world(MAX_CONTACTS);
+
+
 
 GLuint createProgram(const GLchar* vertexSource, const GLchar* fragmentSource) {
 
@@ -138,9 +141,6 @@ bool initSDL() {
 }
 
 void close() {
-    for (PhysicsObject* obj : world.objects) {delete obj;}
-    for (ForceGenerator* fg : world.forces) {delete fg;}
-
     SDL_DestroyWindow(mainWindow.window);
     SDL_GL_DeleteContext(mainWindow.glContext);
     SDL_Quit();
@@ -207,28 +207,58 @@ void initGeometry() {
     glEnable(GL_DEPTH_TEST);
 
     GravityForce *gravity;
-    world.forces.push_back(gravity = new GravityForce(Vector3(0,-9.8,0)));
+    world.addForceGenerator(gravity = new GravityForce(Vector3(0,-9.8,0)));
 
-    world.objects.push_back(new PhysicsObject(Vector3(),Vector3(),0,Shape::tiledFloor(Vector3(),10,1,C_BLACK,C_PURPLE)));
+    world.addObject(new PhysicsObject(Vector3(),Vector3(),0,Shape::tiledFloor(Vector3(),10,1,C_BLACK,C_PURPLE)));
 
     Particle *p1, *p2;
-    world.objects.push_back(p1 = new Particle(Vector3(0,2,-2),Vector3(0,3,0),1,C_RED));
-    world.objects.push_back(p2 = new Particle(Vector3(0,1,2),Vector3(0,0,0),1,C_BLUE));
-    world.forceRegistry.add(p1,gravity);
-    world.forceRegistry.add(p2,gravity);
+    world.addObject(p1 = new Particle(Vector3(0,2,-2),Vector3(0,3,0),1,C_RED));
+    world.addObject(p2 = new Particle(Vector3(0,1,2),Vector3(0,0,0),1,C_BLUE));
+    world.applyForceToObject(p1,gravity);
+    world.applyForceToObject(p2,gravity);
+    world.addContactGenerator(new FloorContactGenerator(p1, 0, 1));
+    world.addContactGenerator(new FloorContactGenerator(p2, 0, 1));
 
     SpringForce *spring1to2, *spring2to1;
-    world.forces.push_back(spring1to2 = new SpringForce(p2,5.0f,1.0f,true));
-    world.forces.push_back(spring2to1 = new SpringForce(p1,5.0f,1.0f,true));
-    world.forceRegistry.add(p1,spring1to2);
-    world.forceRegistry.add(p2,spring2to1);
+    world.addForceGenerator(spring1to2 = new SpringForce(p2,5.0f,1.0f,true));
+    world.addForceGenerator(spring2to1 = new SpringForce(p1,5.0f,1.0f,true));
+    world.applyForceToObject(p1,spring1to2);
+    world.applyForceToObject(p2,spring2to1);
 
-    Particle *p3;
-    world.objects.push_back(p3 = new Particle(Vector3(3,2,0),Vector3(0,0,0),1,C_GREEN));
-    world.objects.push_back(new Particle(Vector3(0,2,0),Vector3(0,0,0),0,C_WHITE));
-     SpringForce *spring3toPt;
-    world.forces.push_back(spring3toPt = new SpringForce(Vector3(0,2,0),8.0f,2.0f,true));
-    world.forceRegistry.add(p3,spring3toPt);
+    Particle *p3, *p4;
+    world.addObject(p3 = new Particle(Vector3(3,2,0),Vector3(0,0,0),1,C_GREEN));
+    world.addObject(p4 = new Particle(Vector3(0,2,0),Vector3(0,0,0),0,C_WHITE));
+    SpringForce *spring3toPt;
+    world.addForceGenerator(spring3toPt = new SpringForce(Vector3(0,2,0),8.0f,2.0f,true));
+    world.applyForceToObject(p3,spring3toPt);
+
+    Particle *p5;
+    world.addObject(p5 = new Particle(Vector3(0,3,1.25),Vector3(0,5,0),1,C_YELLOW));
+    world.applyForceToObject(p5,gravity);
+    world.addContactGenerator(new FloorContactGenerator(p5, 0, 1));
+    world.addContactGenerator(new ParticleCable(p4, p5, 1.5, 0.5));
+
+    /*Particle *p0,*p1,*p2,*p3,*p4;
+    world.addObject(p0 = new Particle(Vector3(0,10,0),Vector3(0,0,0),0,C_BLACK));
+    world.addObject(p1 = new Particle(Vector3(0,7,0),Vector3(0,5,2),1,C_WHITE));
+    world.addObject(p2 = new Particle(Vector3(1,8,0),Vector3(0,5,0),1,C_WHITE));
+    world.addObject(p3 = new Particle(Vector3(1,8,1),Vector3(0,5,0),1,C_WHITE));
+    world.addObject(p4 = new Particle(Vector3(0,8,1),Vector3(0,5,0),1,C_WHITE));
+    world.applyForceToObject(p1,gravity);
+    world.applyForceToObject(p2,gravity);
+    world.applyForceToObject(p3,gravity);
+    world.applyForceToObject(p4,gravity);
+    world.addContactGenerator(new ParticleCable(p0, p1, 3, 0.5));
+    world.addContactGenerator(new FloorContactGenerator(p1, 0, 1));
+    world.addContactGenerator(new FloorContactGenerator(p2, 0, 1));
+    world.addContactGenerator(new FloorContactGenerator(p3, 0, 1));
+    world.addContactGenerator(new FloorContactGenerator(p4, 0, 1));
+    world.addContactGenerator(new ParticleRod(p1, p2, 1.41));
+    world.addContactGenerator(new ParticleRod(p1, p3, 1.73));
+    world.addContactGenerator(new ParticleRod(p1, p4, 1.41));
+    world.addContactGenerator(new ParticleRod(p2, p3, 1));
+    world.addContactGenerator(new ParticleRod(p2, p4, 1.41));
+    world.addContactGenerator(new ParticleRod(p3, p4, 1));*/
 
 }
 
@@ -258,28 +288,12 @@ void setUniforms(GLuint program) {
 
 }
 
-void writeObjectData(bool flatShaded, bool initialWrite, Vector3* positions, VertexColor* colors, GLuint* indices, int &vertexIdx, int &indexIdx) {
-    for (PhysicsObject* obj : world.objects) {
-        if (obj->getModel().isFlatShaded() ^ flatShaded) {continue;}
-        obj->getModel().writeVertexPositionsAndNormals(positions + vertexIdx*2,obj->getModelMatrix());
-        if (initialWrite) {
-            obj->getModel().writeVertexColors(colors + vertexIdx);
-            obj->getModel().writeIndices(indices + indexIdx, vertexIdx);
-        }
-        vertexIdx += obj->getModel().numVertices();
-        indexIdx += obj->getModel().numIndices();
-    }
-}
-
 void render(bool initialWrite) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-    unsigned int numVertices = 0, numIndices = 0;
-    for (PhysicsObject* obj : world.objects) {
-        numVertices += obj->getModel().numVertices();
-        numIndices += obj->getModel().numIndices();
-    }
+    unsigned int numVertices, numIndices;
+    world.writeVertexAndIndexCounts(numVertices, numIndices);
 
     Vector3* positions = new Vector3[numVertices*2];
     VertexColor* colors;
@@ -289,9 +303,9 @@ void render(bool initialWrite) {
         indices = new GLuint[numIndices];
     }
     int vertexIdx = 0, indexIdx = 0;
-    writeObjectData(false, initialWrite, positions, colors, indices, vertexIdx, indexIdx);
+    world.writeObjectData(false, initialWrite, positions, colors, indices, vertexIdx, indexIdx);
     unsigned int flatShadingStart = indexIdx;
-    writeObjectData(true, initialWrite, positions, colors, indices, vertexIdx, indexIdx);
+    world.writeObjectData(true, initialWrite, positions, colors, indices, vertexIdx, indexIdx);
 
     glBindVertexArray(mainWindow.vao);
 
@@ -342,11 +356,7 @@ void update(real deltaTime) {
     if (keystate[SDL_SCANCODE_SPACE]) {view.pos += Vector3::UP*MOVEMENT_SPEED*deltaTime;}
     if (keystate[SDL_SCANCODE_LSHIFT]) {view.pos += Vector3::DOWN*MOVEMENT_SPEED*deltaTime;}
 
-
-    world.forceRegistry.updateForces(deltaTime);
-    for (PhysicsObject* obj : world.objects) {
-        obj->update(deltaTime);
-    }
+    world.update(deltaTime);
 
 }
 

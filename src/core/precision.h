@@ -2,8 +2,11 @@
 #define PHYSICSENGINE_PRECISION_H
 
 #include <cmath>
+#include <cfloat>
 
 typedef float real;
+#define REAL_MAX FLT_MAX
+
 #define real_mod fmod
 #define real_pow powf
 #define real_abs fabsf

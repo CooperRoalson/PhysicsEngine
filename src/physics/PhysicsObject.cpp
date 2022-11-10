@@ -32,8 +32,6 @@ void PhysicsObject::update(real deltaTime) {
     velocity += acceleration*deltaTime;
     velocity *= real_pow(DAMPING, deltaTime);
 
-    if (position.y <= 0.0f) {velocity.y *= -1.0f;}
-
     clearForceAccumulator();
 }
 

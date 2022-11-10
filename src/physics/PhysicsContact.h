@@ -37,6 +37,7 @@ public:
     real penetration;
 
 protected:
+    friend class PhysicsContactResolver;
 
     /*
      * Resolves the contact for both velocity and interpenetration

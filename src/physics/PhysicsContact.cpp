@@ -41,10 +41,10 @@ void ParticleContact::resolveVelocity(real deltaTime) {
     // If all particles have infinite mass, impulses have no effect
     if (totalInverseMass <= 0) { return; }
 
-    // Calculate the impulse to apply
+    // Calculate the amount of impulse to apply
     real impulse = deltaVelocity / totalInverseMass;
 
-    // Find the amount of impulse per unit of inverse mass
+    // Find the impulse per unit of inverse mass
     Vector3 impulsePerIMass = contactNormal * impulse;
 
     // Apply impulses, which go in the direction of the contact
