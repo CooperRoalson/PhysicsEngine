@@ -2,9 +2,9 @@
 
 ForceGenerator::~ForceGenerator() {}
 
-GravityForce::GravityForce(Vector3 gravity) : gravity(gravity) {}
+UniformGravityForce::UniformGravityForce(Vector3 gravity) : gravity(gravity) {}
 
-void GravityForce::updateForce(PhysicsObject* object, real deltaTime) {
+void UniformGravityForce::updateForce(PhysicsObject* object, real deltaTime) {
     object->addForce(gravity);
 }
 
@@ -29,7 +29,6 @@ SpringForce::SpringForce(Vector3 staticAnchor, real k, real restLength, bool sho
 real SpringForce::SPRING_DAMPING = 0.75f;
 
 void SpringForce::updateForce(PhysicsObject *object, real deltaTime) {
-
     // Get displacement
     Vector3 force = object->getPosition() - anchorPositionGetter();
 
@@ -44,3 +43,21 @@ void SpringForce::updateForce(PhysicsObject *object, real deltaTime) {
     object->addForce(force);
 
 }
+
+GravitationalAttractionForce::GravitationalAttractionForce(PhysicsObject *srcObject, real gravitationalConstant) : srcObject(srcObject), g(gravitationalConstant) {}
+
+void GravitationalAttractionForce::updateForce(PhysicsObject *object, real deltaTime) {
+    // Don't exert force if either mass is infinite
+    if (object->getInverseMass() == 0 || srcObject->getInverseMass() == 0) {return;}
+
+    // Get displacement
+    Vector3 displacement = srcObject->getPosition() - object->getPosition();
+    real dist = displacement.magnitude();
+
+    // Get force magnitude
+    real magnitude = g / (object->getInverseMass() * srcObject->getInverseMass() * (dist * dist * dist));
+
+    object->addForce(displacement * magnitude);
+}
+
+

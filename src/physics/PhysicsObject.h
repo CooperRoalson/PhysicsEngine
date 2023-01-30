@@ -21,13 +21,16 @@ private:
 
     Shape model;
 
+    // Does the object experience damping?
+    bool damping;
+
     // Clears the force accumulator. Called after each integration step
     void clearForceAccumulator();
 
 public:
     static const real DAMPING;
 
-    PhysicsObject(Vector3 pos, Vector3 vel, real inverseMass, Shape model);
+    PhysicsObject(Vector3 pos, Vector3 vel, real inverseMass, bool damping, Shape model);
 
     bool hasFiniteMass() const;
     real getInverseMass() const;
@@ -54,7 +57,7 @@ public:
     static const real RADIUS;
     static const int SMOOTHNESS;
 
-    Particle(Vector3 pos, Vector3 vel, real inverseMass, VertexColor color);
+    Particle(Vector3 pos, Vector3 vel, real inverseMass, bool damping, VertexColor color);
 };
 
 

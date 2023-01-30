@@ -20,14 +20,14 @@ public:
 };
 
 /*
- * A force generator to apply gravity to one or more PhysicsObjects
+ * A force generator to apply standard, uniform gravity to one or more PhysicsObjects
  */
-class GravityForce : public ForceGenerator {
+class UniformGravityForce : public ForceGenerator {
 private:
     Vector3 gravity;
 
 public:
-    GravityForce(Vector3 gravity);
+    UniformGravityForce(Vector3 gravity);
 
     void updateForce(PhysicsObject* object, real deltaTime) override;
 
@@ -69,6 +69,25 @@ public:
     SpringForce(PhysicsObject* objectAnchor, real k, real restLength, bool shouldPush);
     /* Creates a SpringForce towards a fixed Vector3 */
     SpringForce(Vector3 staticAnchor, real k, real restLength, bool shouldPush);
+
+    void updateForce(PhysicsObject* object, real deltaTime) override;
+
+};
+
+/*
+ * A force generator to pull one or more PhysicsObjects towards a source object through gravity
+ */
+class GravitationalAttractionForce : public ForceGenerator {
+private:
+    /* The object creating the gravitational field */
+    PhysicsObject* srcObject;
+
+    /* The gravitational constant for this force */
+    real g;
+
+public:
+    /* Creates a GravitationalAttractionForce towards a PhysicsObject */
+    GravitationalAttractionForce(PhysicsObject* srcObject, real gravitationalConstant);
 
     void updateForce(PhysicsObject* object, real deltaTime) override;
 

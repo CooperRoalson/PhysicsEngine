@@ -28,14 +28,14 @@ void initGeometry() {
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
-    GravityForce *gravity;
-    world.addForceGenerator(gravity = new GravityForce(Vector3(0,-9.8,0)));
+    UniformGravityForce *gravity;
+    world.addForceGenerator(gravity = new UniformGravityForce(Vector3(0,-9.8,0)));
 
-    world.addObject(new PhysicsObject(Vector3(),Vector3(),0,Shape::tiledFloor(Vector3(),10,1,C_BLACK,C_PURPLE)));
+    world.addObject(new PhysicsObject(Vector3(),Vector3(),0,true,Shape::tiledFloor(Vector3(),10,1,C_BLACK,C_PURPLE)));
 
     Particle *p1, *p2;
-    world.addObject(p1 = new Particle(Vector3(0,2,-2),Vector3(0,3,0),1,C_RED));
-    world.addObject(p2 = new Particle(Vector3(0,1,2),Vector3(0,0,0),1,C_BLUE));
+    world.addObject(p1 = new Particle(Vector3(0,2,-2),Vector3(0,3,0),1,true,C_RED));
+    world.addObject(p2 = new Particle(Vector3(0,1,2),Vector3(0,0,0),1,true,C_BLUE));
     world.applyForceToObject(p1,gravity);
     world.applyForceToObject(p2,gravity);
     world.addContactGenerator(new FloorContactGenerator(p1, 0, 1));
@@ -48,24 +48,35 @@ void initGeometry() {
     world.applyForceToObject(p2,spring2to1);
 
     Particle *p3, *p4;
-    world.addObject(p3 = new Particle(Vector3(3,2,0),Vector3(0,0,0),1,C_GREEN));
-    world.addObject(p4 = new Particle(Vector3(0,2,0),Vector3(0,0,0),0,C_WHITE));
+    world.addObject(p3 = new Particle(Vector3(3,2,0),Vector3(0,0,0),1,true,C_GREEN));
+    world.addObject(p4 = new Particle(Vector3(0,2,0),Vector3(0,0,0),0,true,C_WHITE));
     SpringForce *spring3toPt;
     world.addForceGenerator(spring3toPt = new SpringForce(Vector3(0,2,0),8.0f,2.0f,true));
     world.applyForceToObject(p3,spring3toPt);
 
     Particle *p5;
-    world.addObject(p5 = new Particle(Vector3(0,3,1.25),Vector3(0,5,0),1,C_YELLOW));
+    world.addObject(p5 = new Particle(Vector3(0,3,1.25),Vector3(0,5,0),1,true,C_YELLOW));
     world.applyForceToObject(p5,gravity);
     world.addContactGenerator(new FloorContactGenerator(p5, 0, 1));
     world.addContactGenerator(new ParticleCable(p4, p5, 1.5, 0.5));
 
+    /*world.addObject(new PhysicsObject(Vector3(),Vector3(),0,true,Shape::tiledFloor(Vector3(),10,1,C_BLACK,C_PURPLE)));
+
+    Particle *earth, *moon;
+    world.addObject(earth = new Particle(Vector3(0,2,0),Vector3(0,0,0),0.0791,true,C_GREEN));
+    world.addObject(moon = new Particle(Vector3(0,2,2),Vector3(2.51,0,0),0.0791*4,false,C_WHITE));
+
+    GravitationalAttractionForce* earthGravity;
+    world.addForceGenerator(earthGravity = new GravitationalAttractionForce(earth, 1));
+
+    world.applyForceToObject(moon, earthGravity);*/
+
     /*Particle *p0,*p1,*p2,*p3,*p4;
-    world.addObject(p0 = new Particle(Vector3(0,10,0),Vector3(0,0,0),0,C_BLACK));
-    world.addObject(p1 = new Particle(Vector3(0,7,0),Vector3(0,5,2),1,C_WHITE));
-    world.addObject(p2 = new Particle(Vector3(1,8,0),Vector3(0,5,0),1,C_WHITE));
-    world.addObject(p3 = new Particle(Vector3(1,8,1),Vector3(0,5,0),1,C_WHITE));
-    world.addObject(p4 = new Particle(Vector3(0,8,1),Vector3(0,5,0),1,C_WHITE));
+    world.addObject(p0 = new Particle(Vector3(0,10,0),Vector3(0,0,0),0,true,C_BLACK));
+    world.addObject(p1 = new Particle(Vector3(0,7,0),Vector3(0,5,2),1,true,C_WHITE));
+    world.addObject(p2 = new Particle(Vector3(1,8,0),Vector3(0,5,0),1,true,C_WHITE));
+    world.addObject(p3 = new Particle(Vector3(1,8,1),Vector3(0,5,0),1,true,C_WHITE));
+    world.addObject(p4 = new Particle(Vector3(0,8,1),Vector3(0,5,0),1,true,C_WHITE));
     world.applyForceToObject(p1,gravity);
     world.applyForceToObject(p2,gravity);
     world.applyForceToObject(p3,gravity);

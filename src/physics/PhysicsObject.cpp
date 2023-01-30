@@ -6,7 +6,7 @@ const real PhysicsObject::DAMPING(0.9f);
 
 bool hasFiniteMass();
 
-PhysicsObject::PhysicsObject(Vector3 pos, Vector3 vel, real inverseMass, Shape model) : position(pos), velocity(vel), inverseMass(inverseMass), model(model) {}
+PhysicsObject::PhysicsObject(Vector3 pos, Vector3 vel, real inverseMass, bool damping, Shape model) : position(pos), velocity(vel), inverseMass(inverseMass), model(model), damping(damping) {}
 
 real PhysicsObject::getInverseMass() const {return inverseMass;}
 bool PhysicsObject::hasFiniteMass() const {return inverseMass > 0.0f;}
@@ -30,12 +30,13 @@ void PhysicsObject::update(real deltaTime) {
     Vector3 acceleration = forceAccumulator * inverseMass;
 
     velocity += acceleration*deltaTime;
-    velocity *= real_pow(DAMPING, deltaTime);
+
+    if (damping) { velocity *= real_pow(DAMPING, deltaTime); }
 
     clearForceAccumulator();
 }
 
-void PhysicsObject::addForce(Vector3 force) { if (hasFiniteMass()) {forceAccumulator += force*inverseMass;} }
+void PhysicsObject::addForce(Vector3 force) { if (hasFiniteMass()) {forceAccumulator += force;} }
 
 void PhysicsObject::clearForceAccumulator() {
     forceAccumulator = Vector3();
@@ -52,4 +53,4 @@ void PhysicsObject::setPosition(Vector3 pos) {
 const real Particle::RADIUS = 0.2;
 const int Particle::SMOOTHNESS = 2;
 
-Particle::Particle(Vector3 pos, Vector3 vel, real inverseMass, VertexColor color) : PhysicsObject(pos,vel,inverseMass,Shape::icosphere(Vector3(),Particle::RADIUS, color, Particle::SMOOTHNESS)) {}
+Particle::Particle(Vector3 pos, Vector3 vel, real inverseMass, bool damping, VertexColor color) : PhysicsObject(pos,vel,inverseMass,damping,Shape::icosphere(Vector3(),Particle::RADIUS, color, Particle::SMOOTHNESS)) {}
