@@ -5,7 +5,7 @@ ForceGenerator::~ForceGenerator() {}
 UniformGravityForce::UniformGravityForce(Vector3 gravity) : gravity(gravity) {}
 
 void UniformGravityForce::updateForce(PhysicsObject* object, real deltaTime) {
-    object->addForce(gravity);
+    if (object->hasFiniteMass()) {object->addForce(gravity/object->getInverseMass());}
 }
 
 

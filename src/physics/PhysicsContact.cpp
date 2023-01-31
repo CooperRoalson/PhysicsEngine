@@ -73,6 +73,7 @@ void ParticleContact::resolveInterpenetration(real deltaTime) {
     objects[0]->setPosition(objects[0]->getPosition() + movePerIMass * objects[0]->getInverseMass());
     if (objects[1]) {
         // Opposite direction to object 0
-        objects[1]->setVelocity(objects[1]->getVelocity() - movePerIMass * objects[1]->getInverseMass());
+        objects[1]->setPosition(objects[1]->getPosition() - movePerIMass * objects[1]->getInverseMass());
     }
+    penetration = 0;
 }
