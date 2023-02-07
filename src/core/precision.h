@@ -6,6 +6,7 @@
 
 typedef float real;
 #define REAL_MAX FLT_MAX
+#define REAL_MIN FLT_MIN
 
 #define real_mod fmod
 #define real_pow powf

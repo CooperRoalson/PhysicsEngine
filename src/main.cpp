@@ -60,9 +60,7 @@ void initGeometry() {
     world.addContactGenerator(new FloorContactGenerator(p5, 0, 1));
     world.addContactGenerator(new ParticleCable(p4, p5, 1.5, 0.5));
 
-    /*world.addObject(new PhysicsObject(Vector3(),Vector3(),0,true,Shape::tiledFloor(Vector3(),10,1,C_BLACK,C_PURPLE)));
-
-    Particle *earth, *moon;
+    /*Particle *earth, *moon;
     world.addObject(earth = new Particle(Vector3(0,2,0),Vector3(0,0,0),0.0791,true,C_GREEN));
     world.addObject(moon = new Particle(Vector3(0,2,2),Vector3(2.51,0,0),0.0791*4,false,C_WHITE));
 
