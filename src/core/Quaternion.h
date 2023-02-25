@@ -43,7 +43,7 @@ struct Quaternion {
     static Quaternion fromEulerAngles(real yaw, real pitch, real roll);
 };
 
-std::ostream& operator<<(std::ostream &out, const Vector4 &v);
+std::ostream& operator<<(std::ostream &out, const Quaternion &q);
 
 
 #endif //PHYSICSENGINE_QUATERNION_H

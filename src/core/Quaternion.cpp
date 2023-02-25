@@ -62,5 +62,7 @@ Quaternion Quaternion::fromEulerAngles(real yaw, real pitch, real roll) {
     return q1 * q2 * q3;
 }
 
-
-
+std::ostream& operator<<(std::ostream &out, const Quaternion &q) {
+    out << "{" << q.r << "," << q.i << "," << q.j << "," << q.k << "}";
+    return out;
+}
