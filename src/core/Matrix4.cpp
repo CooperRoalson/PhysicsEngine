@@ -2,6 +2,8 @@
 #include <string>
 #include <cmath>
 
+#include "Quaternion.h"
+
 const Matrix4 IDENTITY(),ZERO(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
 
 Matrix4::Matrix4(real values[]) {
@@ -56,6 +58,13 @@ Matrix4& Matrix4::translate(real x,real y,real z) {
 
 Matrix4& Matrix4::translate(Vector3 vec) {
     return translate(vec.x,vec.y,vec.z);
+}
+
+Matrix4 &Matrix4::rotate(Quaternion q) {
+    return multiply({1 - (2*q.j*q.j + 2*q.k*q.k),   2*q.i*q.j - 2*q.k*q.r,        2*q.i*q.k + 2*q.j*q.r,      0,
+                     2*q.i*q.j + 2*q.k*q.r,             1 - (2*q.i*q.i + 2*q.k*q.k),  2*q.j*q.k - 2*q.i*q.r,      0,
+                     2*q.i*q.k - 2*q.j*q.r,             2*q.j*q.k + 2*q.i*q.r,        1 - (2*q.i*q.i + 2*q.j*q.j),0,
+                     0,                                 0,                            0,                          1});
 }
 
 Matrix4& Matrix4::rotateX(real xrot) {

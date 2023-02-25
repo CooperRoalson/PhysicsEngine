@@ -6,6 +6,9 @@
 #include "Vector3.h"
 #include "Vector4.h"
 
+// Forward declaration to avoid circular dependency
+class Quaternion;
+
 class Matrix4 {
 
 private:
@@ -26,6 +29,7 @@ public:
 
     Matrix4& translate(real x,real y,real z);
     Matrix4& translate(Vector3 vec);
+    Matrix4& rotate(Quaternion quaternion);
     Matrix4& rotateX(real xrot);
     Matrix4& rotateY(real yrot);
     Matrix4& rotateZ(real zrot);
@@ -38,6 +42,7 @@ public:
     static Matrix4 viewMatrix(Vector3 viewPos, real viewYaw, real viewPitch, real viewRoll);
     static Matrix4 perspectiveProjectionMatrix(real fov, real nearClipping, real farClipping, real aspectRatio);
     static Matrix4 orthographicProjectionMatrix(real left, real right, real bottom, real top, real near, real far);
+
 };
 
 

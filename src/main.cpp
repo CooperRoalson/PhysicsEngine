@@ -5,6 +5,7 @@
 #include "physics/PhysicsWorld.h"
 #include "physics/ObjectLink.h"
 #include "render/MainWindow.h"
+#include "physics/RigidBody.h"
 
 #define UPDATES_PER_SECOND 60
 
@@ -31,9 +32,15 @@ void initGeometry() {
     UniformGravityForce *gravity;
     world.addForceGenerator(gravity = new UniformGravityForce(Vector3(0,-9.8,0)));
 
-    world.addObject(new PhysicsObject(Vector3(),Vector3(),0,true,Shape::tiledFloor(Vector3(),10,1,C_BLACK,C_PURPLE)));
+    world.addObject(new PhysicsObject(Vector3(),Vector3(),0,false,Shape::tiledFloor(Vector3(),10,1,C_BLACK,C_PURPLE)));
 
-    Particle *p1, *p2;
+    RigidBody *r1;
+    world.addObject(r1 = new RigidBody(Vector3(0,2,0), Vector3(0,0,0), Quaternion(), Vector3(2,2,0), 1, false, Shape::cube(Vector3(),0.5,C_BLUE,true)));
+
+    world.applyForceToObject(r1, gravity);
+    world.addContactGenerator(new FloorContactGenerator(r1, 0, 1));
+
+    /*Particle *p1, *p2;
     world.addObject(p1 = new Particle(Vector3(0,2,-2),Vector3(0,3,0),1,true,C_RED));
     world.addObject(p2 = new Particle(Vector3(0,1,2),Vector3(0,0,0),1,true,C_BLUE));
     world.applyForceToObject(p1,gravity);
@@ -58,7 +65,7 @@ void initGeometry() {
     world.addObject(p5 = new Particle(Vector3(0,3,1.25),Vector3(0,5,0),1,true,C_YELLOW));
     world.applyForceToObject(p5,gravity);
     world.addContactGenerator(new FloorContactGenerator(p5, 0, 1));
-    world.addContactGenerator(new ParticleCable(p4, p5, 1.5, 0.5));
+    world.addContactGenerator(new ParticleCable(p4, p5, 1.5, 0.5));*/
 
     /*Particle *earth, *moon;
     world.addObject(earth = new Particle(Vector3(0,2,0),Vector3(0,0,0),0.0791,true,C_GREEN));

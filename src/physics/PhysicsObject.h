@@ -7,7 +7,7 @@
 #include "../core/Matrix4.h"
 
 class PhysicsObject {
-private:
+protected:
     Vector3 position;
     Vector3 velocity;
 
@@ -39,7 +39,7 @@ public:
     Vector3 getVelocity() const;
 
     const Shape& getModel() const;
-    Matrix4 getModelMatrix() const;
+    virtual Matrix4 getModelMatrix() const;
 
     /*
      * Updates the object's position and velocity based on a time duration of `timeDelta`
