@@ -37,7 +37,7 @@ void Quaternion::rotateByVector(Vector3 vector) {
     operator*=(other);
 }
 
-Quaternion Quaternion::addScaledVector(Vector3 vector) {
+void Quaternion::addScaledVector(Vector3 vector) {
     Quaternion q {0,vector.x,vector.y,vector.z};
     q = (q * (*this)) * 0.5;
     operator+=(q);

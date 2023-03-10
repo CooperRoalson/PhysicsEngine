@@ -29,7 +29,7 @@ struct Quaternion {
      * of an amount given by its magnitude */
     void rotateByVector(Vector3 vector);
 
-    Quaternion addScaledVector(Vector3 vector);
+    void addScaledVector(Vector3 vector);
 
     real magnitudeSquared() const;
     real magnitude() const;
