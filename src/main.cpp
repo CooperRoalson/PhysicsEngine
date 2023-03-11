@@ -35,7 +35,7 @@ void initGeometry() {
     world.addObject(new PhysicsObject(Vector3(),Vector3(),0,false,Shape::tiledFloor(Vector3(),10,1,C_BLACK,C_PURPLE)));
 
     RigidBody *r1;
-    world.addObject(r1 = new RigidBody(Vector3(0,2,0), Vector3(0,0,0), Quaternion(), Vector3(2,2,0), 1, false, Shape::cube(Vector3(),0.5,C_BLUE,true)));
+    world.addObject(r1 = new RigidBody(Vector3(0,2,0), Vector3(0,0,0), Quaternion(), Vector3(2,2,0), 1, false, RigidBodyModel(), Shape::cube(Vector3(),0.5,C_BLUE,true)));
 
     world.applyForceToObject(r1, gravity);
     world.addContactGenerator(new FloorContactGenerator(r1, 0, 1));

@@ -1,4 +1,5 @@
 #include "Vector4.h"
+#include "Vector3.h"
 #include "Quaternion.h"
 
 
@@ -6,6 +7,7 @@
 
 Vector4::Vector4() : Vector4(0,0,0,0) {}
 Vector4::Vector4(real x, real y, real z, real w) : x(x), y(y), z(z), w(w) {}
+Vector4::Vector4(Vector3 vec3, real w) : Vector4(vec3.x, vec3.y, vec3.z, w) {}
 
 Vector4 Vector4::operator-() const {return {-x,-y,-z,-w};}
 

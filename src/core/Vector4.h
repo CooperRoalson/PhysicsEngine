@@ -5,11 +5,14 @@
 
 #include "precision.h"
 
+struct Vector3;
+
 struct Vector4 {
     real x,y,z,w;
 
     Vector4();
     Vector4(real x, real y, real z, real w);
+    Vector4(Vector3 vec3, real w);
 
     Vector4 operator-() const;
 
