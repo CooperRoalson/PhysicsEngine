@@ -41,6 +41,7 @@ public:
 
     Quaternion getOrientation() const;
 
+    void addForce(Vector3 force) override;
     void update(real deltaTime) override;
 
 };

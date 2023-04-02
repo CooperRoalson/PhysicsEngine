@@ -28,3 +28,7 @@ void RigidBody::update(real deltaTime) {
 
 }
 
+void RigidBody::addForce(Vector3 force) {
+    PhysicsObject::addForce(force);
+}
+

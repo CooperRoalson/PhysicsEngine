@@ -10,7 +10,6 @@ PhysicsObject::PhysicsObject(Vector3 pos, Vector3 vel, real inverseMass, bool da
 
 real PhysicsObject::getInverseMass() const {return inverseMass;}
 bool PhysicsObject::hasFiniteMass() const {return inverseMass > 0.0f;}
-real PhysicsObject::getMass() const {return hasFiniteMass() ? 1/inverseMass : 0;}
 
 Vector3 PhysicsObject::getPosition() const {return position;}
 Vector3 PhysicsObject::getVelocity() const {return velocity;}

@@ -34,7 +34,6 @@ public:
 
     bool hasFiniteMass() const;
     real getInverseMass() const;
-    real getMass() const;
     Vector3 getPosition() const;
     Vector3 getVelocity() const;
 
@@ -46,7 +45,7 @@ public:
      */
     virtual void update(real deltaTime);
 
-    void addForce(Vector3 force);
+    virtual void addForce(Vector3 force);
     void setVelocity(Vector3 vel);
     void setPosition(Vector3 vel);
 
