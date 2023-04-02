@@ -23,14 +23,17 @@ void DragForce::updateForce(PhysicsObject* object, real deltaTime) {
     object->addForce(force);
 }
 
-SpringForce::SpringForce(PhysicsObject* objectAnchor, real k, real restLength, bool shouldPush) : anchorPositionGetter([objectAnchor](){return objectAnchor->getPosition();}), k(k), restLength(restLength), shouldPush(shouldPush) {}
-SpringForce::SpringForce(Vector3 staticAnchor, real k, real restLength, bool shouldPush) : anchorPositionGetter([staticAnchor](){return staticAnchor;}), k(k), restLength(restLength), shouldPush(shouldPush) {}
+SpringForce::SpringForce(Vector3 connectionPoint, PhysicsObject* objectAnchor, Vector3 anchorConnectionPoint, real k, real restLength, bool shouldPush) : connectionPoint(connectionPoint), anchorPositionGetter([objectAnchor, anchorConnectionPoint](){return objectAnchor->getPointInWorldSpace(anchorConnectionPoint);}), k(k), restLength(restLength), shouldPush(shouldPush) {}
+SpringForce::SpringForce(Vector3 connectionPoint, Vector3 staticAnchor, real k, real restLength, bool shouldPush) : connectionPoint(connectionPoint), anchorPositionGetter([staticAnchor](){return staticAnchor;}), k(k), restLength(restLength), shouldPush(shouldPush) {}
+
+SpringForce::SpringForce(PhysicsObject* objectAnchor, real k, real restLength, bool shouldPush) : SpringForce(Vector3(), objectAnchor, Vector3(), k, restLength, shouldPush) {}
+SpringForce::SpringForce(Vector3 staticAnchor, real k, real restLength, bool shouldPush) : SpringForce(Vector3(), staticAnchor, k, restLength, shouldPush) {}
 
 real SpringForce::SPRING_DAMPING = 0.75f;
 
 void SpringForce::updateForce(PhysicsObject *object, real deltaTime) {
     // Get displacement
-    Vector3 force = object->getPosition() - anchorPositionGetter();
+    Vector3 force = object->getPointInWorldSpace(connectionPoint) - anchorPositionGetter();
 
     // Get force magnitude
     real magnitude = (force.magnitude() - restLength) * k;
@@ -40,7 +43,7 @@ void SpringForce::updateForce(PhysicsObject *object, real deltaTime) {
 
     force = force.normalized() * -magnitude;
 
-    object->addForce(force);
+    object->addForceAtBodyPoint(force, connectionPoint);
 
 }
 

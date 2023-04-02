@@ -32,12 +32,12 @@ void PhysicsObject::update(real deltaTime) {
 
     if (damping) { velocity *= real_pow(DAMPING, deltaTime); }
 
-    clearForceAccumulator();
+    clearAccumulators();
 }
 
-void PhysicsObject::addForce(Vector3 force) { if (hasFiniteMass()) {forceAccumulator += force;} }
+void PhysicsObject::addForceAtPoint(Vector3 force, Vector3 pos) { if (hasFiniteMass()) {forceAccumulator += force;} }
 
-void PhysicsObject::clearForceAccumulator() {
+void PhysicsObject::clearAccumulators() {
     forceAccumulator = Vector3();
 }
 
@@ -47,6 +47,22 @@ void PhysicsObject::setVelocity(Vector3 vel) {
 
 void PhysicsObject::setPosition(Vector3 pos) {
     position = pos;
+}
+
+void PhysicsObject::addForce(Vector3 force) {
+    addForceAtBodyPoint(force, Vector3());
+}
+
+void PhysicsObject::addForceAtBodyPoint(Vector3 force, Vector3 relPos) {
+    addForceAtPoint(force, relPos + position);
+}
+
+Vector3 PhysicsObject::getPointInWorldSpace(Vector3 bodyPos) {
+    return position + bodyPos;
+}
+
+Vector3 PhysicsObject::getPointInBodySpace(Vector3 worldPos) {
+    return worldPos - position;
 }
 
 const real Particle::RADIUS = 0.2;

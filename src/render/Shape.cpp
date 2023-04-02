@@ -192,16 +192,16 @@ Shape Shape::subdivided() {
     return result;
 }
 
-Shape Shape::cube(Vector3 pos, GLfloat sideLength, VertexColor color, bool flatShading) {
+Shape Shape::rectangularPrism(Vector3 pos, GLfloat sideLengthX, GLfloat sideLengthY, GLfloat sideLengthZ, VertexColor color, bool flatShading) {
     Vector3 positions[8] = {
-            {pos.x-sideLength/2,pos.y-sideLength/2,pos.z-sideLength/2},
-            {pos.x+sideLength/2,pos.y-sideLength/2,pos.z-sideLength/2},
-            {pos.x-sideLength/2,pos.y+sideLength/2,pos.z-sideLength/2},
-            {pos.x+sideLength/2,pos.y+sideLength/2,pos.z-sideLength/2},
-            {pos.x-sideLength/2,pos.y-sideLength/2,pos.z+sideLength/2},
-            {pos.x+sideLength/2,pos.y-sideLength/2,pos.z+sideLength/2},
-            {pos.x-sideLength/2,pos.y+sideLength/2,pos.z+sideLength/2},
-            {pos.x+sideLength/2,pos.y+sideLength/2,pos.z+sideLength/2}
+            {pos.x-sideLengthX/2,pos.y-sideLengthY/2,pos.z-sideLengthZ/2},
+            {pos.x+sideLengthX/2,pos.y-sideLengthY/2,pos.z-sideLengthZ/2},
+            {pos.x-sideLengthX/2,pos.y+sideLengthY/2,pos.z-sideLengthZ/2},
+            {pos.x+sideLengthX/2,pos.y+sideLengthY/2,pos.z-sideLengthZ/2},
+            {pos.x-sideLengthX/2,pos.y-sideLengthY/2,pos.z+sideLengthZ/2},
+            {pos.x+sideLengthX/2,pos.y-sideLengthY/2,pos.z+sideLengthZ/2},
+            {pos.x-sideLengthX/2,pos.y+sideLengthY/2,pos.z+sideLengthZ/2},
+            {pos.x+sideLengthX/2,pos.y+sideLengthY/2,pos.z+sideLengthZ/2}
     };
     VertexColor colors[8] = {color,color,color,color,color,color,color,color};
     GLuint indices[] {

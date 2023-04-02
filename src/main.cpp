@@ -34,11 +34,21 @@ void initGeometry() {
 
     world.addObject(new PhysicsObject(Vector3(),Vector3(),0,false,Shape::tiledFloor(Vector3(),10,1,C_BLACK,C_PURPLE)));
 
-    RigidBody *r1;
-    world.addObject(r1 = new RigidBody(Vector3(0,2,0), Vector3(0,0,0), Quaternion(), Vector3(2,2,0), 1, false, RigidBodyModel(), Shape::cube(Vector3(),0.5,C_BLUE,true)));
+    RigidBodyModel *cube = new RectangularPrismModel(0.5,0.5,0.5);
+    RigidBody *r1, *r2;
+    world.addObject(r1 = new RigidBody(Vector3(0,2,0), Vector3(0,0,0), Quaternion(), Vector3(0, 0, 0), 0.1, false, cube,C_BLUE));
+    world.addObject(r2 = new RigidBody(Vector3(3,2,0), Vector3(0,0,0), Quaternion(), Vector3(), 0.1, false, cube,C_RED));
 
     world.applyForceToObject(r1, gravity);
+    world.applyForceToObject(r2, gravity);
     world.addContactGenerator(new FloorContactGenerator(r1, 0, 1));
+    world.addContactGenerator(new FloorContactGenerator(r2, 0, 1));
+
+    SpringForce *spring1to2, *spring2to1;
+    world.addForceGenerator(spring1to2 = new SpringForce(Vector3(), r2, Vector3(0.25,0.25,0.25), 5.0f,1.0f,true));
+    world.addForceGenerator(spring2to1 = new SpringForce(Vector3(0.25,0.25,0.25), r1, Vector3(),5.0f,1.0f,true));
+    world.applyForceToObject(r1,spring1to2);
+    world.applyForceToObject(r2,spring2to1);
 
     /*Particle *p1, *p2;
     world.addObject(p1 = new Particle(Vector3(0,2,-2),Vector3(0,3,0),1,true,C_RED));
@@ -126,7 +136,7 @@ void handleEvents(SDL_Event& e, bool& quit) {
     }
 }
 
-int main(){
+int main() {
     if (!mainWindow.initSDL()) {
         mainWindow.close();
         return 1;

@@ -54,7 +54,7 @@ public:
 
     Shape subdivided();
 
-    static Shape cube(Vector3 pos, GLfloat sideLength, VertexColor color, bool flatShading);
+    static Shape rectangularPrism(Vector3 pos, GLfloat sideLengthX, GLfloat sideLengthY, GLfloat sideLengthZ, VertexColor color, bool flatShading);
     static Shape icosahedron(Vector3 pos, GLfloat radius, VertexColor color);
     static Shape icosphere(Vector3 pos, GLfloat radius, VertexColor color, int iterations);
     static Shape tiledFloor(Vector3 pos, real sideLength, real tileSideLength, VertexColor color1, VertexColor color2);

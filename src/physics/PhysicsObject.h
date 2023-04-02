@@ -25,7 +25,7 @@ protected:
     bool damping;
 
     // Clears the force accumulator. Called after each integration step
-    void clearForceAccumulator();
+    virtual void clearAccumulators();
 
 public:
     static const real DAMPING;
@@ -45,9 +45,19 @@ public:
      */
     virtual void update(real deltaTime);
 
-    virtual void addForce(Vector3 force);
+    /*
+     * Applies a force to the object at a position.
+     * Given in world coordinates
+     */
+    virtual void addForceAtPoint(Vector3 force, Vector3 pos);
+    virtual void addForceAtBodyPoint(Vector3 force, Vector3 relPos);
+    void addForce(Vector3 force);
+
     void setVelocity(Vector3 vel);
-    void setPosition(Vector3 vel);
+    virtual void setPosition(Vector3 vel);
+
+    virtual Vector3 getPointInWorldSpace(Vector3 bodyPos);
+    virtual Vector3 getPointInBodySpace(Vector3 worldPos);
 
 };
 

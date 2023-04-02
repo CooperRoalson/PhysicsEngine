@@ -28,10 +28,17 @@ protected:
      */
     Matrix4 transformMatrix;
 
+    Matrix4 inverseInertiaTensorWorld;
+
     /*
      * Stores the physical geometry of the RigidBody
      */
-    RigidBodyModel model;
+    RigidBodyModel* model;
+
+    /*
+     * Sums up the torques each frame
+     */
+    Vector3 torqueAccumulator;
 
     /*
      * Calculates internal data from state data. Should be called
@@ -40,16 +47,26 @@ protected:
      */
     void calculateDerivedData();
 
+    void clearAccumulators() override;
+
     Matrix4 getModelMatrix() const override;
 
 public:
-    RigidBody(Vector3 pos, Vector3 vel, Quaternion dir, Vector3 rot, real inverseMass, bool damping, RigidBodyModel model, Shape shape);
-    RigidBody(Vector3 pos, Vector3 vel, Quaternion dir, Vector3 rot, real inverseMass, bool damping, RigidBodyModel model, VertexColor color);
+    static const real ANGULAR_DAMPING;
+
+    RigidBody(Vector3 pos, Vector3 vel, Quaternion dir, Vector3 rot, real inverseMass, bool damping, RigidBodyModel* model, Shape shape);
+    RigidBody(Vector3 pos, Vector3 vel, Quaternion dir, Vector3 rot, real inverseMass, bool damping, RigidBodyModel* model, VertexColor color);
 
     Quaternion getOrientation() const;
 
-    void addForce(Vector3 force) override;
+    void setPosition(Vector3 vel) override;
+
+    void addForceAtPoint(Vector3 force, Vector3 pos) override;
+    void addForceAtBodyPoint(Vector3 force, Vector3 relPos) override;
     void update(real deltaTime) override;
+
+    Vector3 getPointInWorldSpace(Vector3 bodyPos) override;
+    Vector3 getPointInBodySpace(Vector3 worldPos) override;
 
 };
 

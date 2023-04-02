@@ -7,31 +7,35 @@
 
 /*
  * A class to store the physical shape of a RigidBody
- * for collisiona and inertia purposes
+ * for collision and inertia purposes. Not specific to a RigidBody
  */
 class RigidBodyModel {
-
-private:
-    /*
-     * The inertia tensor for the object, stored as a 3x3
-     * subsection of a Matrix4
-     */
-    Matrix4 inverseInertiaTensor;
-
 public:
     explicit RigidBodyModel();
-
-    Vector3 torqueToAngularAcc(Vector3 torque);
 
     virtual Shape getMatchingShape(VertexColor color);
 
     /*
-     * Create the inverseInertiaTensor based on the
-     * model's geometry and mass. Should be overriden in
-     * subclasses, and should be called on creation.
+     * Calculate an inertia tensor based on the
+     * model's geometry and a mass. Should be overriden in
+     * subclasses.
      */
-    virtual void calculateInertiaTensor(real inverseMass);
+    virtual Matrix4 getInverseInertiaTensor(real inverseMass);
 
+};
+
+
+class RectangularPrismModel : public RigidBodyModel {
+
+private:
+    real xLen, yLen, zLen;
+
+public:
+    RectangularPrismModel(real xLen, real yLen, real zLen);
+
+    Matrix4 getInverseInertiaTensor(real inverseMass) override;
+
+    Shape getMatchingShape(VertexColor color) override;
 };
 
 

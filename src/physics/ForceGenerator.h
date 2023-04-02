@@ -53,6 +53,10 @@ public:
  */
 class SpringForce : public ForceGenerator {
 private:
+    /* The point of this object that the spring is attached
+     * to, in object coordinates */
+    Vector3 connectionPoint;
+
     /* The other endpoint of the spring */
     std::function<Vector3(void)> anchorPositionGetter;
 
@@ -64,6 +68,11 @@ private:
 
 public:
     static float SPRING_DAMPING;
+
+    /* Creates a SpringForce towards a PhysicsObject */
+    SpringForce(Vector3 connectionPoint, PhysicsObject* objectAnchor, Vector3 anchorConnectionPoint, real k, real restLength, bool shouldPush);
+    /* Creates a SpringForce towards a fixed Vector3 */
+    SpringForce(Vector3 connectionPoint, Vector3 staticAnchor, real k, real restLength, bool shouldPush);
 
     /* Creates a SpringForce towards a PhysicsObject */
     SpringForce(PhysicsObject* objectAnchor, real k, real restLength, bool shouldPush);
