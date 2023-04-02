@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.21)
+
+set(CMAKE_OSX_SYSROOT "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk")
+
 project(PhysicsEngine)
 
 set(CMAKE_CXX_STANDARD 17)
