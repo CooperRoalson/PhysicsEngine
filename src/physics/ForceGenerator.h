@@ -4,6 +4,7 @@
 
 #include "PhysicsObject.h"
 #include "../core/precision.h"
+#include "../render/Renderable.h"
 
 /*
  * Generates translational forces for one or more PhysicsObjects
@@ -49,16 +50,16 @@ public:
 };
 
 /*
- * A force generator to apply a spring force towards a target PhysicsObject
+ * A force generator to apply a spring force between two PhysicsObjects
  */
-class SpringForce : public ForceGenerator {
+class SpringForce : public ForceGenerator, public Renderable {
 private:
-    /* The point of this object that the spring is attached
+    /* The point of these objects that the spring is attached
      * to, in object coordinates */
-    Vector3 connectionPoint;
+    Vector3 connectionPoints[2];
 
-    /* The other endpoint of the spring */
-    std::function<Vector3(void)> anchorPositionGetter;
+    /* The anchors of the spring */
+    PhysicsObject* objects[2];
 
     /* The spring constant and rest length of the spring */
     real k, restLength;
@@ -70,16 +71,11 @@ public:
     static float SPRING_DAMPING;
 
     /* Creates a SpringForce towards a PhysicsObject */
-    SpringForce(Vector3 connectionPoint, PhysicsObject* objectAnchor, Vector3 anchorConnectionPoint, real k, real restLength, bool shouldPush);
-    /* Creates a SpringForce towards a fixed Vector3 */
-    SpringForce(Vector3 connectionPoint, Vector3 staticAnchor, real k, real restLength, bool shouldPush);
-
-    /* Creates a SpringForce towards a PhysicsObject */
-    SpringForce(PhysicsObject* objectAnchor, real k, real restLength, bool shouldPush);
-    /* Creates a SpringForce towards a fixed Vector3 */
-    SpringForce(Vector3 staticAnchor, real k, real restLength, bool shouldPush);
+    SpringForce(PhysicsObject* objectAnchor1, Vector3 connectionPoint1, PhysicsObject* objectAnchor2, Vector3 connectionPoint2, real k, real restLength, bool shouldPush);
 
     void updateForce(PhysicsObject* object, real deltaTime) override;
+
+    Shape getShape() const override;
 
 };
 

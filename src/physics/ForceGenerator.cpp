@@ -23,17 +23,26 @@ void DragForce::updateForce(PhysicsObject* object, real deltaTime) {
     object->addForce(force);
 }
 
-SpringForce::SpringForce(Vector3 connectionPoint, PhysicsObject* objectAnchor, Vector3 anchorConnectionPoint, real k, real restLength, bool shouldPush) : connectionPoint(connectionPoint), anchorPositionGetter([objectAnchor, anchorConnectionPoint](){return objectAnchor->getPointInWorldSpace(anchorConnectionPoint);}), k(k), restLength(restLength), shouldPush(shouldPush) {}
-SpringForce::SpringForce(Vector3 connectionPoint, Vector3 staticAnchor, real k, real restLength, bool shouldPush) : connectionPoint(connectionPoint), anchorPositionGetter([staticAnchor](){return staticAnchor;}), k(k), restLength(restLength), shouldPush(shouldPush) {}
-
-SpringForce::SpringForce(PhysicsObject* objectAnchor, real k, real restLength, bool shouldPush) : SpringForce(Vector3(), objectAnchor, Vector3(), k, restLength, shouldPush) {}
-SpringForce::SpringForce(Vector3 staticAnchor, real k, real restLength, bool shouldPush) : SpringForce(Vector3(), staticAnchor, k, restLength, shouldPush) {}
-
 real SpringForce::SPRING_DAMPING = 0.75f;
 
+SpringForce::SpringForce(PhysicsObject *objectAnchor1, Vector3 connectionPoint1, PhysicsObject *objectAnchor2, Vector3 connectionPoint2,real k, real restLength, bool shouldPush)
+        : objects{objectAnchor1, objectAnchor2}, connectionPoints{connectionPoint1, connectionPoint2}, k(k), restLength(restLength), shouldPush(shouldPush) {}
+
 void SpringForce::updateForce(PhysicsObject *object, real deltaTime) {
+    Vector3 connectionPos;
+    Vector3 anchorPos;
+    if (object == objects[0]) {
+        connectionPos = objects[0]->getPointInWorldSpace(connectionPoints[0]);
+        anchorPos = objects[1]->getPointInWorldSpace(connectionPoints[1]);
+    } else if (object == objects[1]) {
+        connectionPos = objects[1]->getPointInWorldSpace(connectionPoints[1]);
+        anchorPos = objects[0]->getPointInWorldSpace(connectionPoints[0]);
+    } else {
+        return;
+    }
+
     // Get displacement
-    Vector3 force = object->getPointInWorldSpace(connectionPoint) - anchorPositionGetter();
+    Vector3 force = connectionPos - anchorPos;
 
     // Get force magnitude
     real magnitude = (force.magnitude() - restLength) * k;
@@ -43,8 +52,12 @@ void SpringForce::updateForce(PhysicsObject *object, real deltaTime) {
 
     force = force.normalized() * -magnitude;
 
-    object->addForceAtBodyPoint(force, connectionPoint);
+    object->addForceAtPoint(force, connectionPos);
 
+}
+
+Shape SpringForce::getShape() const {
+    return Shape::cylinder(objects[0]->getPointInWorldSpace(connectionPoints[0]), objects[1]->getPointInWorldSpace(connectionPoints[1]), 0.1, C_BLACK, 6, false);
 }
 
 GravitationalAttractionForce::GravitationalAttractionForce(PhysicsObject *srcObject, real gravitationalConstant) : srcObject(srcObject), g(gravitationalConstant) {}

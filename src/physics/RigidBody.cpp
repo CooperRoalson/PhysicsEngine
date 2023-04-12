@@ -41,8 +41,8 @@ void RigidBody::update(real deltaTime) {
 
 void RigidBody::addForceAtPoint(Vector3 force, Vector3 pos) {
     PhysicsObject::addForceAtPoint(force, pos);
-
     pos -= position;
+    if(pos.isZero()) {return;}
     torqueAccumulator += pos.cross(force);
 }
 

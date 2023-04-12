@@ -38,6 +38,9 @@ struct Vector3 {
     real magnitudeSquared() const;
     real magnitude() const;
 
+    real azimuth() const;
+    real elevation() const;
+
     Vector3 normalized() const;
     void normalize();
 

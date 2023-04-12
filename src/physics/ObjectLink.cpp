@@ -9,6 +9,10 @@ ObjectLink::ObjectLink(PhysicsObject* obj1, PhysicsObject* obj2) {
     objects[1] = obj2;
 }
 
+Shape ObjectLink::getShape() const {
+    return Shape::cylinder(objects[0]->getPosition(), objects[1]->getPosition(), 0.1, C_BLACK, 6, false);
+}
+
 unsigned int ParticleCable::addContact(PhysicsContact *contact, unsigned int limit) const {
 
     // Find the length of the cable

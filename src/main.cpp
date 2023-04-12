@@ -32,44 +32,42 @@ void initGeometry() {
     UniformGravityForce *gravity;
     world.addForceGenerator(gravity = new UniformGravityForce(Vector3(0,-9.8,0)));
 
-    world.addObject(new PhysicsObject(Vector3(),Vector3(),0,false,Shape::tiledFloor(Vector3(),10,1,C_BLACK,C_PURPLE)));
+    world.addObject(new PhysicsObject(Vector3(),Vector3(),0,false,Shape::tiledFloor(Vector3(),10,1,{0.15,0.15,0.15},C_PURPLE)));
 
     RigidBodyModel *cube = new RectangularPrismModel(0.5,0.5,0.5);
     RigidBody *r1, *r2;
-    world.addObject(r1 = new RigidBody(Vector3(0,2,0), Vector3(0,0,0), Quaternion(), Vector3(0, 0, 0), 0.1, false, cube,C_BLUE));
-    world.addObject(r2 = new RigidBody(Vector3(3,2,0), Vector3(0,0,0), Quaternion(), Vector3(), 0.1, false, cube,C_RED));
+    world.addObject(r1 = new RigidBody(Vector3(0,2,0), Vector3(), Quaternion(), Vector3(), 0.1, true, cube,C_BLUE));
+    world.addObject(r2 = new RigidBody(Vector3(2.5,2,0), Vector3(), Quaternion(), Vector3(), 0.1, true, cube,C_RED));
 
-    world.applyForceToObject(r1, gravity);
-    world.applyForceToObject(r2, gravity);
-    world.addContactGenerator(new FloorContactGenerator(r1, 0, 1));
-    world.addContactGenerator(new FloorContactGenerator(r2, 0, 1));
+    // world.applyForceToObject(r1, gravity);
+    // world.applyForceToObject(r2, gravity);
+    // world.addContactGenerator(new FloorContactGenerator(r1, 0, 1));
+    // world.addContactGenerator(new FloorContactGenerator(r2, 0, 1));
 
-    SpringForce *spring1to2, *spring2to1;
-    world.addForceGenerator(spring1to2 = new SpringForce(Vector3(), r2, Vector3(0.25,0.25,0.25), 5.0f,1.0f,true));
-    world.addForceGenerator(spring2to1 = new SpringForce(Vector3(0.25,0.25,0.25), r1, Vector3(),5.0f,1.0f,true));
-    world.applyForceToObject(r1,spring1to2);
-    world.applyForceToObject(r2,spring2to1);
+    SpringForce *spring_1_2;
+    world.addForceGenerator(spring_1_2 = new SpringForce(r1, Vector3(0.25,0.25,0.25), r2, Vector3(-0.25,-0.25,-0.25),10.0f,1.0f,true));
+    world.applyForceToObject(r1,spring_1_2);
+    world.applyForceToObject(r2,spring_1_2);
 
     /*Particle *p1, *p2;
-    world.addObject(p1 = new Particle(Vector3(0,2,-2),Vector3(0,3,0),1,true,C_RED));
-    world.addObject(p2 = new Particle(Vector3(0,1,2),Vector3(0,0,0),1,true,C_BLUE));
+    world.addObject(p1 = new Particle(Vector3(-1,2,-2),Vector3(0,3,0),1,true,C_RED));
+    world.addObject(p2 = new Particle(Vector3(-1,1,2),Vector3(0,0,0),1,true,C_BLUE));
     world.applyForceToObject(p1,gravity);
     world.applyForceToObject(p2,gravity);
     world.addContactGenerator(new FloorContactGenerator(p1, 0, 1));
     world.addContactGenerator(new FloorContactGenerator(p2, 0, 1));
 
-    SpringForce *spring1to2, *spring2to1;
-    world.addForceGenerator(spring1to2 = new SpringForce(p2,5.0f,1.0f,true));
-    world.addForceGenerator(spring2to1 = new SpringForce(p1,5.0f,1.0f,true));
-    world.applyForceToObject(p1,spring1to2);
-    world.applyForceToObject(p2,spring2to1);
+    SpringForce *spring_1_2;
+    world.addForceGenerator(spring_1_2 = new SpringForce(p1, Vector3(), p2, Vector3(),5.0f,1.0f,true));
+    world.applyForceToObject(p1,spring_1_2);
+    world.applyForceToObject(p2,spring_1_2);
 
     Particle *p3, *p4;
     world.addObject(p3 = new Particle(Vector3(3,2,0),Vector3(0,0,0),1,true,C_GREEN));
     world.addObject(p4 = new Particle(Vector3(0,2,0),Vector3(0,0,0),0,true,C_WHITE));
-    SpringForce *spring3toPt;
-    world.addForceGenerator(spring3toPt = new SpringForce(Vector3(0,2,0),8.0f,2.0f,true));
-    world.applyForceToObject(p3,spring3toPt);
+    SpringForce *spring_3_4;
+    world.addForceGenerator(spring_3_4 = new SpringForce(p3, Vector3(), p4, Vector3(),8.0f,2.0f,true));
+    world.applyForceToObject(p3,spring_3_4);
 
     Particle *p5;
     world.addObject(p5 = new Particle(Vector3(0,3,1.25),Vector3(0,5,0),1,true,C_YELLOW));

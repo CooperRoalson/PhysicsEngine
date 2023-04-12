@@ -179,12 +179,27 @@ void MainWindow::setUniforms(GLuint program) {
 
 }
 
+void MainWindow::writeShape(Shape s, Matrix4 transform, bool flatShaded, bool initialWrite, Vector3* positions, VertexColor* colors, GLuint* indices, int &vertexIdx, int &indexIdx) {
+    if (s.isFlatShaded() ^ flatShaded) {return;}
+    s.writeVertexPositionsAndNormals(positions + vertexIdx*2,transform);
+    if (initialWrite) {
+        s.writeVertexColors(colors + vertexIdx);
+        s.writeIndices(indices + indexIdx, vertexIdx);
+    }
+    vertexIdx += s.numVertices();
+    indexIdx += s.numIndices();
+}
+
 void MainWindow::render(PhysicsWorld &world, bool initialWrite) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
     unsigned int numVertices, numIndices;
     world.writeVertexAndIndexCounts(numVertices, numIndices);
+
+    if (numVertices > VERTEX_BUFFER_LENGTH || numIndices > INDEX_BUFFER_LENGTH) {
+        std::cout << "Error: Exceeded maximum buffer length! Rendering incomplete scene\n";
+    }
 
     Vector3* positions = new Vector3[numVertices*2];
     VertexColor* colors;

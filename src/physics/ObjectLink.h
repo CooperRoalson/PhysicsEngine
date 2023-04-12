@@ -4,13 +4,14 @@
 #include "PhysicsObject.h"
 #include "PhysicsContact.h"
 #include "ContactGenerator.h"
+#include "../render/Renderable.h"
 
 /*
  * Links connect two PhysicsObjects together, generating a contact if
  * they violate the constraints of their link. It is used as a
  * base class for cables and rods.
  */
-class ObjectLink : public ContactGenerator {
+class ObjectLink : public ContactGenerator, public Renderable {
 public:
     /*
      * Holds the pair of objects that are connected by this link.
@@ -18,6 +19,8 @@ public:
     PhysicsObject* objects[2];
 
     ObjectLink(PhysicsObject* obj1, PhysicsObject* obj2);
+
+    Shape getShape() const override;
 
 protected:
     /*
@@ -46,7 +49,6 @@ public:
 
     ParticleCable(PhysicsObject* obj1, PhysicsObject* obj2, real maxLength, real restitution);
 
-public:
     /*
      * Fills out the contact's fields with values that will prevent
      * the cable from overextending.

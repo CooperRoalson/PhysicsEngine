@@ -1,4 +1,5 @@
 #include "PhysicsWorld.h"
+#include "../render/MainWindow.h"
 
 PhysicsWorld::~PhysicsWorld() {
     for (PhysicsObject* obj : objects) {delete obj;}
@@ -8,22 +9,42 @@ PhysicsWorld::~PhysicsWorld() {
 
 void PhysicsWorld::writeObjectData(bool flatShaded, bool initialWrite, Vector3* positions, VertexColor* colors, GLuint* indices, int &vertexIdx, int &indexIdx) const {
     for (PhysicsObject* obj : objects) {
-        if (obj->getModel().isFlatShaded() ^ flatShaded) {continue;}
-        obj->getModel().writeVertexPositionsAndNormals(positions + vertexIdx*2,obj->getModelMatrix());
-        if (initialWrite) {
-            obj->getModel().writeVertexColors(colors + vertexIdx);
-            obj->getModel().writeIndices(indices + indexIdx, vertexIdx);
+        MainWindow::writeShape(obj->getModel(), obj->getModelMatrix(), flatShaded, initialWrite, positions, colors, indices, vertexIdx, indexIdx);
+    }
+
+    Renderable* r;
+    for (ForceGenerator* fg : forces) {
+        if ((r = dynamic_cast<Renderable*>(fg)) != nullptr) {
+            MainWindow::writeShape(r->getShape(), Matrix4(), flatShaded, initialWrite, positions, colors, indices, vertexIdx, indexIdx);
         }
-        vertexIdx += obj->getModel().numVertices();
-        indexIdx += obj->getModel().numIndices();
+    }
+    for (ContactGenerator* cg : contactGenerators) {
+        if ((r = dynamic_cast<Renderable*>(cg)) != nullptr) {
+            MainWindow::writeShape(r->getShape(), Matrix4(), flatShaded, initialWrite, positions, colors, indices, vertexIdx, indexIdx);
+        }
     }
 }
+
 
 void PhysicsWorld::writeVertexAndIndexCounts(unsigned int &vertexCount, unsigned int &indexCount) const {
     vertexCount = indexCount = 0;
     for (PhysicsObject* obj : objects) {
         vertexCount += obj->getModel().numVertices();
         indexCount += obj->getModel().numIndices();
+    }
+
+    Renderable* r;
+    for (ForceGenerator* fg : forces) {
+        if ((r = dynamic_cast<Renderable*>(fg)) != nullptr) {
+            vertexCount += r->getShape().numVertices();
+            indexCount += r->getShape().numIndices();
+        }
+    }
+    for (ContactGenerator* cg : contactGenerators) {
+        if ((r = dynamic_cast<Renderable*>(cg)) != nullptr) {
+            vertexCount += r->getShape().numVertices();
+            indexCount += r->getShape().numIndices();
+        }
     }
 }
 

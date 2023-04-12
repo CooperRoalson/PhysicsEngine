@@ -19,7 +19,6 @@ Shape::Shape(unsigned int numVertices, const Vector3* vertexPositions, const Ver
 
     vertexNormalArr = new Vector3[vertexCount];
     generateVertexNormals();
-
 }
 
 Shape::Shape(const Shape& oldShape) {
@@ -116,7 +115,7 @@ void Shape::writeIndices(GLuint* arr, int offset) const {
     }
 }
 
-GLuint Shape::getOrMakeMidpoint(GLuint offset, GLuint& numNewVertices, Vector3 *positionArr, Vector3 *normalArr, VertexColor *colorArr, GLuint v1,
+GLuint Shape::getOrMakeMidpoint(GLuint offset, GLuint& numNewVertices, Vector3 *positionArr, VertexColor *colorArr, GLuint v1,
                                 GLuint v2, GLuint *idxArr1, GLuint *idxArr2) {
     GLuint temp = std::max(v1,v2);
     v1 = std::min(v1,v2);
@@ -129,7 +128,6 @@ GLuint Shape::getOrMakeMidpoint(GLuint offset, GLuint& numNewVertices, Vector3 *
     }
 
     positionArr[offset+numNewVertices]  = (positionArr[v1] + positionArr[v2]) / 2;
-    normalArr[offset+numNewVertices]  = (normalArr[v1] + normalArr[v2]).normalized();
     colorArr[offset+numNewVertices] = {(colorArr[v1].r + colorArr[v2].r) / 2,
                              (colorArr[v1].g + colorArr[v2].g) / 2,
                              (colorArr[v1].b + colorArr[v2].b) / 2};
@@ -144,9 +142,6 @@ GLuint Shape::getOrMakeMidpoint(GLuint offset, GLuint& numNewVertices, Vector3 *
 Shape Shape::subdivided() {
     Vector3 *positions = new Vector3[vertexCount + indexCount];
     std::memcpy(positions, vertexPositionArr, vertexCount * sizeof(Vector3));
-
-    Vector3 *normals = new Vector3[vertexCount + indexCount];
-    std::memcpy(normals, vertexNormalArr, vertexCount * sizeof(Vector3));
 
     VertexColor *colors = new VertexColor[vertexCount + indexCount];
     std::memcpy(colors, vertexColorArr, vertexCount * sizeof(VertexColor));
@@ -163,13 +158,13 @@ Shape Shape::subdivided() {
         GLuint i2 = indexArr[3 * i + 1];
         GLuint i3 = indexArr[3 * i + 2];
 
-        GLuint i4 = getOrMakeMidpoint(vertexCount, newVertices, positions, normals, colors, i1,i2, idxArr1, idxArr2);
-        GLuint i5 = getOrMakeMidpoint(vertexCount, newVertices, positions, normals, colors, i2,i3, idxArr1, idxArr2);
-        GLuint i6 = getOrMakeMidpoint(vertexCount, newVertices, positions, normals, colors, i3,i1, idxArr1, idxArr2);
+        GLuint i4 = getOrMakeMidpoint(vertexCount, newVertices, positions, colors, i1,i2, idxArr1, idxArr2);
+        GLuint i5 = getOrMakeMidpoint(vertexCount, newVertices, positions, colors, i2,i3, idxArr1, idxArr2);
+        GLuint i6 = getOrMakeMidpoint(vertexCount, newVertices, positions, colors, i3,i1, idxArr1, idxArr2);
 
-        indices[12 * i + 0] = i1; indices[12 * i + 1] = i4; indices[12 * i + 2] = i6;
-        indices[12 * i + 3] = i2; indices[12 * i + 4] = i5; indices[12 * i + 5] = i4;
-        indices[12 * i + 6] = i3; indices[12 * i + 7] = i6; indices[12 * i + 8] = i5;
+        indices[12 * i + 0] = i4; indices[12 * i + 1] = i6; indices[12 * i + 2] = i1;
+        indices[12 * i + 3] = i4; indices[12 * i + 4] = i2; indices[12 * i + 5] = i5;
+        indices[12 * i + 6] = i5; indices[12 * i + 7] = i3; indices[12 * i + 8] = i6;
         indices[12 * i + 9] = i4; indices[12 * i + 10] = i5; indices[12 * i + 11] = i6;
     }
 
@@ -177,13 +172,6 @@ Shape Shape::subdivided() {
     delete[] idxArr2;
 
     Shape result = Shape(vertexCount + newVertices, positions, colors, indexCount * 4, indices, flatShaded);
-
-    if (!flatShaded) {
-        delete[] result.vertexNormalArr;
-        result.vertexNormalArr = normals;
-    } else {
-        delete[] normals;
-    }
 
     delete[] positions;
     delete[] colors;
@@ -259,9 +247,9 @@ Shape Shape::tiledFloor(Vector3 pos, real sideLength, real tileSideLength, Verte
     return s;
 }
 
-Shape Shape::icosahedron(Vector3 pos, GLfloat radius, VertexColor color) {
+Shape Shape::icosahedron(Vector3 pos, GLfloat radius, VertexColor color, bool flatShading) {
     real t = 1.61803398875f;
-    Vector3 positions[12] = {
+    Vector3 positions[20] = {
             {t,1,0},
             {-t,1,0},
             {t,-1,0},
@@ -276,9 +264,19 @@ Shape Shape::icosahedron(Vector3 pos, GLfloat radius, VertexColor color) {
             {0,-t,-1}
     };
     for (int i = 0; i < 12; i++) { positions[i] = positions[i].normalized()*radius + pos; }
+    if (flatShading) {
+        positions[12] = positions[0];
+        positions[13] = positions[0];
+        positions[14] = positions[2];
+        positions[15] = positions[2];
+        positions[16] = positions[1];
+        positions[17] = positions[1];
+        positions[18] = positions[3];
+        positions[19] = positions[3];
+    }
 
-    VertexColor colors[12] = {color,color,color,color,color,color,color,color,color,color,color,color};
-    GLuint indices[60] {
+    VertexColor colors[20] = {color,color,color,color,color,color,color,color,color,color,color,color,color,color,color,color,color,color,color,color};
+    GLuint indices[20*3] {
             0,8,4,
             0,5,10,
             2,4,9,
@@ -300,11 +298,23 @@ Shape Shape::icosahedron(Vector3 pos, GLfloat radius, VertexColor color) {
             10,5,7,
             11,7,5
     };
-    return Shape(12,positions,colors,60,indices,false);
+
+    if (flatShading) {
+        indices[3*0] = 12;
+        indices[3*1] = 13;
+        indices[3*2] = 14;
+        indices[3*3] = 15;
+        indices[3*4] = 16;
+        indices[3*5] = 17;
+        indices[3*6] = 18;
+        indices[3*7] = 19;
+    }
+
+    return Shape(flatShading ? 20 : 12,positions,colors,20*3,indices,flatShading);
 }
 
 Shape Shape::icosphere(Vector3 pos, GLfloat radius, VertexColor color, int iterations) {
-    Shape s = icosahedron(Vector3(),1,color);
+    Shape s = icosahedron(Vector3(),1,color, false);
 
     for (int i = 0; i < iterations; i++) {
         s = s.subdivided();
@@ -313,5 +323,62 @@ Shape Shape::icosphere(Vector3 pos, GLfloat radius, VertexColor color, int itera
     for (int v = 0; v < s.vertexCount; v++) { s.vertexPositionArr[v] = s.vertexPositionArr[v]*radius + pos; }
 
     return s;
+}
+
+Shape Shape::cylinder(Vector3 p1, Vector3 p2, GLfloat radius, VertexColor color, int circleVertices, bool flatShading) {
+    Vector3 axis = p2-p1;
+    // Transformation from the unit cylinder to this cylinder
+    Matrix4 transformMat = Matrix4().translate(p1).rotate(M_PI_2 - axis.azimuth(), M_PI_2 - axis.elevation(), 0).scale(radius, axis.magnitude(), radius);
+
+    Vector3 positions[2*circleVertices+2];
+    VertexColor colors[2*circleVertices+2];
+
+    // Center points of each base
+    positions[0] = transformMat.multiply(Vector4(0,0,0,1));
+    colors[0] = color;
+    positions[circleVertices+1] = transformMat.multiply(Vector4(0,1,0,1));
+    colors[circleVertices+1] = color;
+
+    /* Points on the unit cylinder, transformed by the matrix
+     * Order:
+     *  -Bottom center
+     *  -Bottom circle
+     *  -Top center
+     *  -Top circle
+     */
+    double angleIncrement = 2*M_PI/circleVertices, angle;
+    for (int i = 0; i < circleVertices; i++) {
+        angle = angleIncrement * i;
+        positions[1 + i] = transformMat.multiply(Vector4(cos(angle), 0, sin(angle),1));
+        positions[circleVertices+2 + i] = transformMat.multiply(Vector4(cos(angle+angleIncrement/2), 1, sin(angle+angleIncrement/2),1));
+
+        colors[1 + i] = color;
+        colors[circleVertices+2 + i] = color;
+    }
+
+    GLuint indices[3*(4*circleVertices)];
+
+    // Bases
+    for (int i = 0; i < circleVertices; i++) {
+        indices[3*i+0] = 0;
+        indices[3*i+1] = i + 1;
+        indices[3*i+2] = (i+1)%circleVertices + 1;
+
+        indices[3*i+0 + 3*circleVertices] = 1 + circleVertices;
+        indices[3*i+1 + 3*circleVertices] = (i+1)%circleVertices + 2 + circleVertices;
+        indices[3*i+2 + 3*circleVertices] = i + 2 + circleVertices;
+    }
+    // Walls
+    for (int i = 0; i < circleVertices; i++) {
+        indices[3*i+0 + 3*2*circleVertices] = i + 1;
+        indices[3*i+1 + 3*2*circleVertices] = i + 2+circleVertices;
+        indices[3*i+2 + 3*2*circleVertices] = (i+1)%circleVertices + 1;
+
+        indices[3*i+0 + 3*3*circleVertices] = i + 2+circleVertices;
+        indices[3*i+1 + 3*3*circleVertices] = (i+1)%circleVertices + 2+circleVertices;
+        indices[3*i+2 + 3*3*circleVertices] = (i+1)%circleVertices + 1;
+    }
+
+    return Shape(circleVertices*2+2,positions,colors,circleVertices*4*3,indices,flatShading);
 }
 

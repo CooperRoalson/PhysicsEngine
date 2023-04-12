@@ -29,7 +29,7 @@ private:
 
     void generateVertexNormals();
 
-    static GLuint getOrMakeMidpoint(GLuint offset, GLuint& numNewVertices, Vector3* positionArr, Vector3* normalArr, VertexColor* colorArr, GLuint v1, GLuint v2, GLuint* idxArr1, GLuint* idxArr2);
+    static GLuint getOrMakeMidpoint(GLuint offset, GLuint& numNewVertices, Vector3* positionArr, VertexColor* colorArr, GLuint v1, GLuint v2, GLuint* idxArr1, GLuint* idxArr2);
 
 public:
     Shape(unsigned int numVertices, const Vector3* vertexPositions, const VertexColor* vertexColors, unsigned int numIndices, const GLuint* indices, bool flatShading);
@@ -52,12 +52,16 @@ public:
     void writeVertexColors(VertexColor* arr) const;
     void writeIndices(GLuint* arr, int offset) const;
 
+    /* Creates a new shape where every face of the original
+     * has been split into 4 new faces. Does not work well
+     * with most flat-shaded shapes */
     Shape subdivided();
 
     static Shape rectangularPrism(Vector3 pos, GLfloat sideLengthX, GLfloat sideLengthY, GLfloat sideLengthZ, VertexColor color, bool flatShading);
-    static Shape icosahedron(Vector3 pos, GLfloat radius, VertexColor color);
+    static Shape icosahedron(Vector3 pos, GLfloat radius, VertexColor color, bool flatShading);
     static Shape icosphere(Vector3 pos, GLfloat radius, VertexColor color, int iterations);
     static Shape tiledFloor(Vector3 pos, real sideLength, real tileSideLength, VertexColor color1, VertexColor color2);
+    static Shape cylinder(Vector3 p1, Vector3 p2, GLfloat radius, VertexColor color, int circleVertices, bool flatShading);
 
     bool isFlatShaded() const;
 };

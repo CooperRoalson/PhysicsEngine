@@ -84,6 +84,8 @@ public:
     void updateView(real deltaTime);
 
     void handleEvent(SDL_Event& e);
+
+    static void writeShape(Shape s, Matrix4 transform, bool flatShaded, bool initialWrite, Vector3 *positions, VertexColor *colors, GLuint *indices, int &vertexIdx, int &indexIdx);
 };
 
 

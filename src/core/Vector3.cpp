@@ -39,6 +39,14 @@ Vector3 Vector3::cross(Vector3 vec1, Vector3 vec2) {return vec1.cross(vec2);}
 
 bool Vector3::isZero() const {return !(x || y || z);}
 
+real Vector3::azimuth() const {
+    return atan2(z,x);
+}
+
+real Vector3::elevation() const {
+    return atan2(y,sqrt(x*x+z*z));
+}
+
 std::ostream& operator<<(std::ostream &out, const Vector3 &v) {
     out << "{" << v.x << "," << v.y << "," << v.z << "}";
     return out;
