@@ -5,6 +5,7 @@
 #include "../math/Vector3.h"
 #include "../render/Shape.h"
 #include "../math/Matrix4.h"
+#include "BVHTree.h"
 
 class PhysicsObject {
 protected:
@@ -59,6 +60,8 @@ public:
     virtual Vector3 getPointInWorldSpace(Vector3 bodyPos);
     virtual Vector3 getPointInBodySpace(Vector3 worldPos);
 
+    virtual BoundingSphere getBoundingSphere() const = 0;
+
 };
 
 class Particle : public PhysicsObject {
@@ -67,6 +70,8 @@ public:
     static const int SMOOTHNESS;
 
     Particle(Vector3 pos, Vector3 vel, real inverseMass, bool damping, VertexColor color);
+
+    BoundingSphere getBoundingSphere() const override;
 };
 
 

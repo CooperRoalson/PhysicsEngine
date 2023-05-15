@@ -68,6 +68,8 @@ public:
     Vector3 getPointInWorldSpace(Vector3 bodyPos) override;
     Vector3 getPointInBodySpace(Vector3 worldPos) override;
 
+    BoundingSphere getBoundingSphere() const override;
+
 };
 
 

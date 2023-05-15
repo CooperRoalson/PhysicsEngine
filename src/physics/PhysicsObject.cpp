@@ -69,3 +69,7 @@ const real Particle::RADIUS = 0.2;
 const int Particle::SMOOTHNESS = 2;
 
 Particle::Particle(Vector3 pos, Vector3 vel, real inverseMass, bool damping, VertexColor color) : PhysicsObject(pos,vel,inverseMass,damping,Shape::icosphere(Vector3(), Particle::RADIUS, color, Particle::SMOOTHNESS)) {}
+
+BoundingSphere Particle::getBoundingSphere() const {
+    return BoundingSphere(Vector3(), 0);
+}

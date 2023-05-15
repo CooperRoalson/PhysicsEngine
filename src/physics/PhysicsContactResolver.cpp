@@ -17,7 +17,7 @@ void PhysicsContactResolver::resolveContact(PhysicsContact *contact, real deltaT
 void ParticleContactResolver::resolveContacts(PhysicsContact* contactArray, unsigned int numContacts, real deltaTime) {
     iterationsUsed = 0;
 
-    while(iterationsUsed < iterations) {
+    while (iterationsUsed < iterations) {
 
         // Find the contact with the largest closing velocity
         real maxVel = REAL_MAX;

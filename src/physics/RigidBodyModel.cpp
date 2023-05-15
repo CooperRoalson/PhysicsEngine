@@ -11,7 +11,11 @@ Shape RigidBodyModel::getMatchingShape(VertexColor color) {
     return Shape(0, nullptr, nullptr, 0, nullptr, false);
 }
 
-RectangularPrismModel::RectangularPrismModel(real xLen, real yLen, real zLen) : xLen(xLen), yLen(yLen), zLen(zLen) {}
+BoundingSphere RigidBodyModel::getBoundingSphere() const { return boundingSphere; }
+
+RectangularPrismModel::RectangularPrismModel(real xLen, real yLen, real zLen) : xLen(xLen), yLen(yLen), zLen(zLen) {
+    boundingSphere = BoundingSphere(Vector3(), (real)0.5 * sqrt(xLen*xLen + yLen*yLen + zLen*zLen));
+}
 
 Matrix4 RectangularPrismModel::getInverseInertiaTensor(real inverseMass) {
     return Matrix4(12*inverseMass/(yLen*yLen + zLen*zLen), 0, 0, 0,

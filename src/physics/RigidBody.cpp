@@ -72,3 +72,9 @@ void RigidBody::setPosition(Vector3 vel) {
     calculateDerivedData();
 }
 
+BoundingSphere RigidBody::getBoundingSphere() const {
+    BoundingSphere sphere = model->getBoundingSphere();
+    sphere.center += position;
+    return sphere;
+}
+

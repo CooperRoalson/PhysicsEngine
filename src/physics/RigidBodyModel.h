@@ -4,12 +4,16 @@
 
 #include "../math/Matrix4.h"
 #include "../render/Shape.h"
+#include "BVHTree.h"
 
 /*
  * A class to store the physical shape of a RigidBody
  * for collision and inertia purposes. Not specific to a RigidBody
  */
 class RigidBodyModel {
+protected:
+    BoundingSphere boundingSphere;
+
 public:
     explicit RigidBodyModel();
 
@@ -21,6 +25,8 @@ public:
      * subclasses.
      */
     virtual Matrix4 getInverseInertiaTensor(real inverseMass);
+
+    BoundingSphere getBoundingSphere() const;
 
 };
 
