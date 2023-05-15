@@ -49,7 +49,7 @@ protected:
 
     void clearAccumulators() override;
 
-    Matrix4 getModelMatrix() const override;
+    Matrix4 getShapeMatrix() const override;
 
 public:
     static const real ANGULAR_DAMPING;
@@ -69,8 +69,8 @@ public:
     Vector3 getPointInBodySpace(Vector3 worldPos) override;
 
     BoundingSphere getBoundingSphere() const override;
+    const RigidBodyModel* getModel() const;
 
 };
-
 
 #endif //PHYSICSENGINE_RIGIDBODY_H

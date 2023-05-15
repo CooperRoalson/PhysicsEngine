@@ -1,6 +1,7 @@
 #include "PhysicsObject.h"
 
 #include <cmath>
+#include "RigidBody.h"
 
 const real PhysicsObject::DAMPING(0.9f);
 
@@ -14,9 +15,9 @@ bool PhysicsObject::hasFiniteMass() const {return inverseMass > 0.0f;}
 Vector3 PhysicsObject::getPosition() const {return position;}
 Vector3 PhysicsObject::getVelocity() const {return velocity;}
 
-const Shape& PhysicsObject::getModel() const {return model;}
+const Shape& PhysicsObject::getShape() const {return model;}
 
-Matrix4 PhysicsObject::getModelMatrix() const {
+Matrix4 PhysicsObject::getShapeMatrix() const {
     return Matrix4().translate(position);
 }
 
@@ -74,3 +75,11 @@ const int Particle::SMOOTHNESS = 2;
 
 Particle::Particle(Vector3 pos, Vector3 vel, real inverseMass, bool damping, VertexColor color) : PhysicsObject(pos,vel,inverseMass,damping,Shape::icosphere(Vector3(), Particle::RADIUS, color, Particle::SMOOTHNESS)) {}
 
+std::ostream &operator<<(std::ostream &out, const PhysicsObject &obj) {
+    if (auto p = dynamic_cast<const Particle*>(&obj)) {out << "Particle";}
+    else if (auto rb = dynamic_cast<const RigidBody*>(&obj)) {out << "RigidBody(" << *rb->getModel() << ")";}
+    else {out << "PhysicsObject";}
+
+    out << "@" << obj.getPosition();
+    return out;
+}

@@ -35,19 +35,36 @@ void initGeometry() {
     world.addObject(new PhysicsObject(Vector3(),Vector3(),0,false,Shape::tiledFloor(Vector3(),10,1,{0.15,0.15,0.15},C_PURPLE)));
 
     RigidBodyModel *cube = new RectangularPrismModel(0.5,0.5,0.5);
-    RigidBody *r1, *r2;
+    RigidBody *r1, *r2, *r3, *r4;
     world.addObject(r1 = new RigidBody(Vector3(0,2,0), Vector3(), Quaternion(), Vector3(), 0.1, true, cube,C_BLUE));
-    world.addObject(r2 = new RigidBody(Vector3(2.5,2,0), Vector3(), Quaternion(), Vector3(), 0.1, true, cube,C_RED));
+    world.addObject(r2 = new RigidBody(Vector3(0,2.86,0), Vector3(), Quaternion(), Vector3(), 0.1, true, cube,C_RED));
+    world.addObject(r3 = new RigidBody(Vector3(0.5,1.5,0), Vector3(), Quaternion(), Vector3(), 0.1, true, cube,C_YELLOW));
+    world.addObject(r4 = new RigidBody(Vector3(0,2.5,0.65), Vector3(), Quaternion(), Vector3(), 0.1, true, cube,C_YELLOW));
+
+
+    BVHTree tree;
+    tree.insert(r1);
+    tree.insert(r2);
+    tree.insert(r3);
+    tree.insert(r4);
+
+    PotentialContact contacts[100];
+    unsigned int num;
+    std::cout << (num = tree.getPotentialContacts(contacts, 100)) << std::endl;
+    for (int i = 0; i < num; i++) {
+        std::cout << *contacts[i].bodies[0] << ", " << *contacts[i].bodies[1] << std::endl;
+    }
+    tree.print();
 
     // world.applyForceToObject(r1, gravity);
     // world.applyForceToObject(r2, gravity);
     // world.addContactGenerator(new FloorContactGenerator(r1, 0, 1));
     // world.addContactGenerator(new FloorContactGenerator(r2, 0, 1));
 
-    SpringForce *spring_1_2;
-    world.addForceGenerator(spring_1_2 = new SpringForce(r1, Vector3(0.25,0.25,0.25), r2, Vector3(-0.25,-0.25,-0.25),10.0f,1.0f,true));
-    world.applyForceToObject(r1,spring_1_2);
-    world.applyForceToObject(r2,spring_1_2);
+//    SpringForce *spring_1_2;
+//    world.addForceGenerator(spring_1_2 = new SpringForce(r1, Vector3(0.25,0.25,0.25), r2, Vector3(-0.25,-0.25,-0.25),10.0f,1.0f,true));
+//    world.applyForceToObject(r1,spring_1_2);
+//    world.applyForceToObject(r2,spring_1_2);
 
     /*Particle *p1, *p2;
     world.addObject(p1 = new Particle(Vector3(-1,2,-2),Vector3(0,3,0),1,true,C_RED));

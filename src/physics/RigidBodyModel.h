@@ -44,7 +44,6 @@ public:
     Shape getMatchingShape(VertexColor color) override;
 };
 
-
-
+std::ostream& operator<<(std::ostream &out, const RigidBodyModel &rm);
 
 #endif //PHYSICSENGINE_RIGIDBODYMODEL_H

@@ -26,18 +26,19 @@ struct BoundingSphere {
     real getGrowth(BoundingSphere &newSphere) const;
 };
 
+struct PotentialContact {
+    /*
+     * Holds the bodies that might be in contact.
+     */
+    RigidBody* bodies[2];
+};
+
 /*
  * A "bounding volume hierarchy" tree structure that performs
  * broad-phase collision checks between BoundingSpheres
  */
 class BVHTree {
 private:
-    struct PotentialContact {
-        /*
-         * Holds the bodies that might be in contact.
-         */
-        RigidBody* bodies[2];
-    };
 
     struct BVHNode {
         /*
@@ -95,6 +96,8 @@ private:
 
     BVHNode* findRigidBody(BVHNode* node, RigidBody* body) const;
 
+    void print(BVHNode* node, unsigned int level) const;
+
     BVHNode* root;
 
 public:
@@ -117,6 +120,8 @@ public:
      * and returns the number written, up to limit.
      */
     unsigned int getPotentialContacts(PotentialContact* contacts, unsigned int limit) const;
+
+    void print() const;
 
 };
 

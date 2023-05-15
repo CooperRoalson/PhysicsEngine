@@ -38,8 +38,8 @@ public:
     Vector3 getPosition() const;
     Vector3 getVelocity() const;
 
-    const Shape& getModel() const;
-    virtual Matrix4 getModelMatrix() const;
+    const Shape& getShape() const;
+    virtual Matrix4 getShapeMatrix() const;
 
     /*
      * Updates the object's position and velocity based on a time duration of `timeDelta`
@@ -64,6 +64,8 @@ public:
 
 };
 
+std::ostream& operator<<(std::ostream &out, const PhysicsObject &obj);
+
 class Particle : public PhysicsObject {
 public:
     static const real RADIUS;
@@ -71,6 +73,5 @@ public:
 
     Particle(Vector3 pos, Vector3 vel, real inverseMass, bool damping, VertexColor color);
 };
-
 
 #endif //PHYSICSENGINE_PHYSICSOBJECT_H

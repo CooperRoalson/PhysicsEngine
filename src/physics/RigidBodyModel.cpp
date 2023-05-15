@@ -27,3 +27,10 @@ Matrix4 RectangularPrismModel::getInverseInertiaTensor(real inverseMass) {
 Shape RectangularPrismModel::getMatchingShape(VertexColor color) {
     return Shape::rectangularPrism(Vector3(0,0,0), xLen, yLen, zLen, color, true);
 }
+
+std::ostream &operator<<(std::ostream &out, const RigidBodyModel &rm) {
+    if (auto rp = dynamic_cast<const RectangularPrismModel*>(&rm)) {out << "RectangularPrismModel";}
+    else {out << "RigidBodyModel";}
+    return out;
+}
+

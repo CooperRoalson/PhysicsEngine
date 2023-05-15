@@ -5,22 +5,28 @@ bool BVHTree::BVHNode::isLeaf() const {
     return body != nullptr;
 }
 
-BVHTree::BVHNode::BVHNode(BVHTree::BVHNode *parent, BoundingSphere volume, RigidBody* body) : parent(parent), volume(volume), body(body) {}
+BVHTree::BVHNode::BVHNode(BVHTree::BVHNode *parent, BoundingSphere volume, RigidBody* body) : parent(parent), volume(volume), body(body), children{nullptr, nullptr} {}
 
-unsigned int BVHTree::getPotentialContacts(const BVHTree::BVHNode *node, BVHTree::PotentialContact *contacts,
-                                           unsigned int limit) const {
+unsigned int BVHTree::getPotentialContacts(const BVHTree::BVHNode *node, PotentialContact *contacts, unsigned int limit) const {
     if (limit == 0 || node->isLeaf()) {return 0;}
 
-    return getPotentialContactsBetween(node->children[0], node->children[1], contacts, limit);
+    unsigned int count = getPotentialContactsBetween(node->children[0], node->children[1], contacts, limit);
+
+    if (count < limit) {
+        count += getPotentialContacts(node->children[0], contacts + count, limit - count);
+        if (count < limit) {
+            count += getPotentialContacts(node->children[1], contacts + count, limit - count);
+        }
+    }
+    return count;
 }
 
 bool BVHTree::overlaps(const BVHTree::BVHNode *node1, const BVHTree::BVHNode *node2) const {
     return node1->volume.overlaps(&node2->volume);
 }
 
-unsigned int BVHTree::getPotentialContactsBetween(const BVHTree::BVHNode *node1, const BVHTree::BVHNode *node2, BVHTree::PotentialContact *contacts, unsigned int limit) const {
+unsigned int BVHTree::getPotentialContactsBetween(const BVHTree::BVHNode *node1, const BVHTree::BVHNode *node2, PotentialContact *contacts, unsigned int limit) const {
     if (limit == 0 || !overlaps(node1, node2)) {return 0;}
-
     // If we've reached 2 leaf nodes that overlap, they might be in contact
     if (node1->isLeaf() && node2->isLeaf()) {
         contacts[0].bodies[0] = node1->body;
@@ -110,7 +116,11 @@ BVHTree::~BVHTree() {
 }
 
 void BVHTree::insert(RigidBody *body) {
-    insert(root, body);
+    if (!root) {
+        root = new BVHNode(nullptr, body->getBoundingSphere(), body);
+    } else {
+        insert(root, body);
+    }
 }
 
 bool BVHTree::remove(RigidBody *body) {
@@ -129,8 +139,26 @@ BVHTree::BVHNode *BVHTree::findRigidBody(BVHTree::BVHNode *node, RigidBody *body
     return nullptr;
 }
 
-unsigned int BVHTree::getPotentialContacts(BVHTree::PotentialContact *contacts, unsigned int limit) const {
+unsigned int BVHTree::getPotentialContacts(PotentialContact *contacts, unsigned int limit) const {
+    if (!root) { return 0; }
     return getPotentialContacts(root, contacts, limit);
+}
+
+void BVHTree::print(BVHNode* node, unsigned int level) const {
+    for (int i = 0; i < level; i++) {
+        std::cout << "| ";
+    }
+    if (node->body) {
+        std::cout << *node->body << std::endl;
+    } else {
+        std::cout << "BoundingSphere(" << node->volume.radius << ")\n";
+        print(node->children[0], level+1);
+        print(node->children[1], level+1);
+    }
+}
+
+void BVHTree::print() const {
+    print(root, 0);
 }
 
 bool BoundingSphere::overlaps(const BoundingSphere* other) const {

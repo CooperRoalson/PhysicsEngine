@@ -9,7 +9,7 @@ PhysicsWorld::~PhysicsWorld() {
 
 void PhysicsWorld::writeObjectData(bool flatShaded, bool initialWrite, Vector3* positions, VertexColor* colors, GLuint* indices, int &vertexIdx, int &indexIdx) const {
     for (PhysicsObject* obj : objects) {
-        MainWindow::writeShape(obj->getModel(), obj->getModelMatrix(), flatShaded, initialWrite, positions, colors, indices, vertexIdx, indexIdx);
+        MainWindow::writeShape(obj->getShape(), obj->getShapeMatrix(), flatShaded, initialWrite, positions, colors, indices, vertexIdx, indexIdx);
     }
 
     Renderable* r;
@@ -29,8 +29,8 @@ void PhysicsWorld::writeObjectData(bool flatShaded, bool initialWrite, Vector3* 
 void PhysicsWorld::writeVertexAndIndexCounts(unsigned int &vertexCount, unsigned int &indexCount) const {
     vertexCount = indexCount = 0;
     for (PhysicsObject* obj : objects) {
-        vertexCount += obj->getModel().numVertices();
-        indexCount += obj->getModel().numIndices();
+        vertexCount += obj->getShape().numVertices();
+        indexCount += obj->getShape().numIndices();
     }
 
     Renderable* r;

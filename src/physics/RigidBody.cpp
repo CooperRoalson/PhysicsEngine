@@ -18,7 +18,7 @@ RigidBody::RigidBody(Vector3 pos, Vector3 vel, Quaternion dir, Vector3 rot, real
 RigidBody::RigidBody(Vector3 pos, Vector3 vel, Quaternion dir, Vector3 rot, real inverseMass, bool damping, RigidBodyModel* model, VertexColor color)
         : RigidBody(pos, vel, dir, rot, inverseMass, damping, model, model->getMatchingShape(color)) {}
 
-Matrix4 RigidBody::getModelMatrix() const {
+Matrix4 RigidBody::getShapeMatrix() const {
     return transformMatrix;
 }
 
@@ -78,3 +78,13 @@ BoundingSphere RigidBody::getBoundingSphere() const {
     return sphere;
 }
 
+const RigidBodyModel* RigidBody::getModel() const {
+    return model;
+}
+
+std::ostream &operator<<(std::ostream &out, const RigidBody &r) {
+//    RigidBodyModel m = *r.getModel();
+//    std::cout << &m;
+    out << "RigidBody(" << *r.getModel() << ")@" << r.getPosition();
+    return out;
+}
