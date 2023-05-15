@@ -2,8 +2,8 @@
 #define PHYSICSENGINE_GEOMETRY_H
 
 #include <sdl_opengl.h>
-#include "../core/Vector3.h"
-#include "../core/Matrix4.h"
+#include "../math/Vector3.h"
+#include "../math/Matrix4.h"
 
 struct VertexColor {
     GLfloat r,g,b;

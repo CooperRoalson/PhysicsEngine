@@ -6,7 +6,7 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 
-#include "../core/Vector3.h"
+#include "../math/Vector3.h"
 #include "../physics/PhysicsWorld.h"
 
 /*

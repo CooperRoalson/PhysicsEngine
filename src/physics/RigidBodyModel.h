@@ -2,7 +2,7 @@
 #define PHYSICSENGINE_RIGIDBODYMODEL_H
 
 
-#include "../core/Matrix4.h"
+#include "../math/Matrix4.h"
 #include "../render/Shape.h"
 
 /*

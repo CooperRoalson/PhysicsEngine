@@ -2,9 +2,9 @@
 #define PHYSICSENGINE_PHYSICSOBJECT_H
 
 
-#include "../core/Vector3.h"
+#include "../math/Vector3.h"
 #include "../render/Shape.h"
-#include "../core/Matrix4.h"
+#include "../math/Matrix4.h"
 
 class PhysicsObject {
 protected:

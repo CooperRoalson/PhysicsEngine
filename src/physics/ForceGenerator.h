@@ -3,7 +3,7 @@
 
 
 #include "PhysicsObject.h"
-#include "../core/precision.h"
+#include "../math/precision.h"
 #include "../render/Renderable.h"
 
 /*

@@ -2,7 +2,7 @@
 #define PHYSICSENGINE_RIGIDBODY_H
 
 #include "PhysicsObject.h"
-#include "../core/Quaternion.h"
+#include "../math/Quaternion.h"
 #include "RigidBodyModel.h"
 
 /*
