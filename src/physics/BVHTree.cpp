@@ -1,4 +1,5 @@
 #include "BVHTree.h"
+#include "RigidBody.h"
 
 bool BVHTree::BVHNode::isLeaf() const {
     return body != nullptr;
@@ -169,3 +170,5 @@ real BoundingSphere::getGrowth(BoundingSphere &newSphere) const {
     BoundingSphere thisSphere = *this;
     return BoundingSphere(thisSphere, newSphere).getSize() - getSize();
 }
+
+BoundingSphere::BoundingSphere() {}

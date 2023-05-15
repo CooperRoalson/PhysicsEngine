@@ -60,7 +60,7 @@ public:
     virtual Vector3 getPointInWorldSpace(Vector3 bodyPos);
     virtual Vector3 getPointInBodySpace(Vector3 worldPos);
 
-    virtual BoundingSphere getBoundingSphere() const = 0;
+    virtual BoundingSphere getBoundingSphere() const;
 
 };
 
@@ -70,8 +70,6 @@ public:
     static const int SMOOTHNESS;
 
     Particle(Vector3 pos, Vector3 vel, real inverseMass, bool damping, VertexColor color);
-
-    BoundingSphere getBoundingSphere() const override;
 };
 
 

@@ -1,7 +1,9 @@
 #ifndef PHYSICSENGINE_BVHTREE_H
 #define PHYSICSENGINE_BVHTREE_H
 #include "../math/Vector3.h"
-#include "RigidBody.h"
+
+// Avoid circular dependency
+class RigidBody;
 
 /*
  * A spherical volume meant to completely encompass a RigidBody
@@ -10,6 +12,7 @@ struct BoundingSphere {
     Vector3 center;
     real radius;
 
+    BoundingSphere();
     BoundingSphere(Vector3 center, real radius);
 
     /*
