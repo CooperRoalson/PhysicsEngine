@@ -3,7 +3,7 @@
 #include <cmath>
 #include "RigidBody.h"
 
-const real PhysicsObject::DAMPING(0.9f);
+const real PhysicsObject::DAMPING(0.85f);
 
 bool hasFiniteMass();
 

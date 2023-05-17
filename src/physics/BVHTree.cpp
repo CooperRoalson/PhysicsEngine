@@ -36,7 +36,7 @@ unsigned int BVHTree::getPotentialContactsBetween(const BVHTree::BVHNode *node1,
 
     // Pick one node to descend into: either the non-leaf, or
     // the larger one if they're both branches
-    bool descendIntoFirst = node2->isLeaf() || (!node1->isLeaf() && node1->volume.getSize() >= node2->volume.getSize());
+    bool descendIntoFirst = node2->isLeaf() || (!node1->isLeaf() && node1->volume.radius >= node2->volume.radius);
     const BVHNode* splitNode = descendIntoFirst ? node1 : node2;
     const BVHNode* otherNode = descendIntoFirst ? node2 : node1;
 
@@ -151,7 +151,7 @@ void BVHTree::print(BVHNode* node, unsigned int level) const {
     if (node->body) {
         std::cout << *node->body << std::endl;
     } else {
-        std::cout << "BoundingSphere(" << node->volume.radius << ")\n";
+        std::cout << "BoundingSphere(r=" << node->volume.radius << ")\n";
         print(node->children[0], level+1);
         print(node->children[1], level+1);
     }
@@ -166,7 +166,7 @@ bool BoundingSphere::overlaps(const BoundingSphere* other) const {
 }
 
 real BoundingSphere::getSize() const {
-    return M_PI * radius*radius;
+    return 4*M_PI/3 * radius*radius*radius;
 }
 
 BoundingSphere::BoundingSphere(Vector3 center, real radius) : center(center), radius(radius) {}

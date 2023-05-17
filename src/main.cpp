@@ -7,7 +7,7 @@
 #include "render/MainWindow.h"
 #include "physics/RigidBody.h"
 
-#define UPDATES_PER_SECOND 60
+#define UPDATES_PER_SECOND 1000
 
 #define DEFAULT_WINDOW_WIDTH 1000
 #define DEFAULT_WINDOW_HEIGHT 1000
@@ -34,12 +34,56 @@ void initGeometry() {
 
     world.addObject(new PhysicsObject(Vector3(),Vector3(),0,false,Shape::tiledFloor(Vector3(),10,1,{0.15,0.15,0.15},C_PURPLE)));
 
-    RigidBodyModel *cube = new RectangularPrismModel(0.5,0.5,0.5);
-    RigidBody *r1, *r2, *r3, *r4;
+    RigidBodyModel *barLong = new RectangularPrismModel(5,0.2,0.2);
+    RigidBodyModel *barShort = new RectangularPrismModel(3,0.2,0.2);
+    RigidBodyModel *cube = new RectangularPrismModel(0.4,0.4,0.4);
+
+    Particle *a;
+    RigidBody *b1, *b2, *c1, *c2, *c3;
+    world.addObject(a = new Particle(Vector3(0,8,0), Vector3(), 0, false,C_BLACK));
+    world.addObject(b1 = new RigidBody(Vector3(0,6,0), Vector3(), Quaternion(), Vector3(), 20, true, barLong,VertexColor{0.5,0.5,0.5}));
+    world.addObject(b2 = new RigidBody(Vector3(1,4,0), Vector3(), Quaternion::fromEulerAngles(M_PI_2,0,0), Vector3(), 20, true, barShort,VertexColor{0.5,0.5,0.5}));
+    world.addObject(c1 = new RigidBody(Vector3(-2,2,0), Vector3(), Quaternion(), Vector3(), 4.444, true, cube,C_RED));
+    world.addObject(c2 = new RigidBody(Vector3(1,2,1), Vector3(), Quaternion(), Vector3(), 5, true, cube,C_BLUE));
+    world.addObject(c3 = new RigidBody(Vector3(1,2,-1), Vector3(), Quaternion(), Vector3(), 5, true, cube,C_GREEN));
+
+    world.applyForceToObject(b1, gravity);
+    world.applyForceToObject(b2, gravity);
+    world.applyForceToObject(c1, gravity);
+    world.applyForceToObject(c2, gravity);
+    world.applyForceToObject(c3, gravity);
+
+    SpringForce *spring_a_b1;
+    world.addForceGenerator(spring_a_b1 = new SpringForce(a, Vector3(), b1, Vector3(),10.0f,1.289f,false));
+    world.applyForceToObject(b1,spring_a_b1);
+
+    SpringForce *spring_b1_c1;
+    world.addForceGenerator(spring_b1_c1 = new SpringForce(b1, Vector3(-2, 0, 0), c1, Vector3(0.15,0.15,0.15),10.0f,3.779f,false));
+    world.applyForceToObject(b1,spring_b1_c1);
+    world.applyForceToObject(c1,spring_b1_c1);
+
+    SpringForce *spring_b1_b2;
+    world.addForceGenerator(spring_b1_b2 = new SpringForce(b1, Vector3(1, 0, 0), b2, Vector3(),10.0f,1.559,false));
+    world.applyForceToObject(b1,spring_b1_b2);
+    world.applyForceToObject(b2,spring_b1_b2);
+
+    SpringForce *spring_b2_c2;
+    world.addForceGenerator(spring_b2_c2 = new SpringForce(b2, Vector3(1, 0, 0), c2, Vector3(-0.15,-0.15,-0.15),10.0f,1.804f,false));
+    world.applyForceToObject(b2,spring_b2_c2);
+    world.applyForceToObject(c2,spring_b2_c2);
+
+    SpringForce *spring_b2_c3;
+    world.addForceGenerator(spring_b2_c3 = new SpringForce(b2, Vector3(-1, 0, 0), c3, Vector3(-0.15,-0.15,-0.15),10.0f,1.804f,false));
+    world.applyForceToObject(b2,spring_b2_c3);
+    world.applyForceToObject(c3,spring_b2_c3);
+
+    /*RigidBodyModel *cube = new RectangularPrismModel(0.5,0.5,0.5);
+    RigidBody *r1, *r2, *r3, *r4, *r5;
     world.addObject(r1 = new RigidBody(Vector3(0,2,0), Vector3(), Quaternion(), Vector3(), 0.1, true, cube,C_BLUE));
     world.addObject(r2 = new RigidBody(Vector3(0,2.86,0), Vector3(), Quaternion(), Vector3(), 0.1, true, cube,C_RED));
     world.addObject(r3 = new RigidBody(Vector3(0.5,1.5,0), Vector3(), Quaternion(), Vector3(), 0.1, true, cube,C_YELLOW));
     world.addObject(r4 = new RigidBody(Vector3(0,2.5,0.65), Vector3(), Quaternion(), Vector3(), 0.1, true, cube,C_YELLOW));
+    world.addObject(r5 = new RigidBody(Vector3(-0.5,2.2,0), Vector3(), Quaternion(), Vector3(), 0.1, true, cube,C_PURPLE));
 
 
     BVHTree tree;
@@ -47,6 +91,7 @@ void initGeometry() {
     tree.insert(r2);
     tree.insert(r3);
     tree.insert(r4);
+    tree.insert(r5);
 
     PotentialContact contacts[100];
     unsigned int num;
@@ -54,7 +99,7 @@ void initGeometry() {
     for (int i = 0; i < num; i++) {
         std::cout << *contacts[i].bodies[0] << ", " << *contacts[i].bodies[1] << std::endl;
     }
-    tree.print();
+    tree.print();*/
 
     // world.applyForceToObject(r1, gravity);
     // world.applyForceToObject(r2, gravity);
